@@ -1,0 +1,17 @@
+/*
+Jason project for controlling Minecraft computercraft turtles.
+
+Computercraft wiki: https://tweaked.cc/
+Authors:
+    Petr Zelina,
+    Jordan Ortiz Thorogood,
+    Haroun Ben Ameur
+*/
+
+MAS minecraft_turtles {
+    environment: env.MinecraftEnv
+
+    agents:
+        bob;
+        alice;
+}
