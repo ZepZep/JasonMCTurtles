@@ -1,5 +1,5 @@
 # Minecraft Turtles
-Jason multiagent project for controlling Minecraft computercraft turtles.
+Jason multi-agent project for controlling Minecraft computercraft turtles.
 
 We use WebSocket to communicate with the turtles.
 
@@ -10,11 +10,11 @@ Inspired by https://github.com/LarsChristianK/WebsocketsTurtleMoveTutorial
 
 
 ## TODO
-    [ ] send commands to specific turtle
-    [ ] synchronous external actions (`execs`)
-    [ ] return values from Minecraft
-    [ ] turtle filesystem scripts
+- [ ] send commands to specific turtle
+- [ ] synchronous external actions (`execs`)
+- [ ] return values from Minecraft
+- [ ] turtle filesystem scripts
 
 ## Bugs
-    [ ] investigate empty HashMap
-    [ ] server port sometimes full after restart
+- [ ] investigate empty HashMap
+- [ ] server port sometimes full after restart
