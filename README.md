@@ -5,7 +5,7 @@ We use WebSocket to communicate with the turtles.
 
 Authors: Petr Zelina, Jordan Ortiz Thorogood, Haroun Ben Ameur
 
-Computercraft wiki: https://tweaked.cc/
+Computercraft wiki: https://tweaked.cc/<br>
 Inspired by https://github.com/LarsChristianK/WebsocketsTurtleMoveTutorial
 
 
