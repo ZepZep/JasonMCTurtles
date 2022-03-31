@@ -61,15 +61,20 @@ public class MinecraftEnv extends Environment {
         return retval;
     }
 
+    boolean a_exec(String ag, String action) {
+        JSONObject json = new JSONObject();
+        json.put("func", "return " + action);
+        String pc = ag2pc.get(ag);
+        return server.exec(pc, json);
+    }
+
+
     boolean execAndLocate(String ag, String action) {
         JSONObject json = new JSONObject();
         json.put("func", "return " + "a");
         json.put("locate", "true");
 
-        server.execs(ag, json);
-        //
-        // server.broadcast(json.toString());
-        //
+        server.exec(ag, json);
 
         return true;
     }
@@ -89,9 +94,7 @@ public class MinecraftEnv extends Environment {
             JSONObject json = new JSONObject();
             String literal = act.getTerm(0).toString();
             literal = literal.substring(1, literal.length()-1);
-            json.put("func", "return " + literal);
-            server.broadcast(json.toString());
-            retval = true;
+            retval = a_exec(ag, literal);
         } else if (act.getFunctor().equals("execs")) {
             JSONObject json = new JSONObject();
             String literal = act.getTerm(0).toString();

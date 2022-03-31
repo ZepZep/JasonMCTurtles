@@ -26,9 +26,9 @@ public class SimpleServer extends WebSocketServer {
     }
 
 
-    public boolean execs(String ag, JSONObject json) {
-        json.put("ag", ag);
-        broadcast(json.toString());
+    public boolean exec(String pc, JSONObject json) {
+        WebSocket conn = pc2conn.get(pc);
+        conn.send(json.toString());
         return true;
     }
 
