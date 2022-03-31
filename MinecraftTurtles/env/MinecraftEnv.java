@@ -37,6 +37,7 @@ public class MinecraftEnv extends Environment {
         pcQueues = new HashMap<String, BlockingQueue<JSONObject>>();
 
         server = new SimpleServer(new InetSocketAddress(host, port), newPcQueue);
+        server.setReuseAddr(true);
         server.start();
     }
 
@@ -85,7 +86,7 @@ public class MinecraftEnv extends Environment {
      */
     @Override
     public boolean executeAction(String ag, Structure act) {
-        System.out.println("Agent "+ag+" is doing "+act);
+        // System.out.println("Agent "+ag+" is doing "+act);
         clearPercepts();
 
         boolean retval = false;
