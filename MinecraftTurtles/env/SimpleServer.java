@@ -34,7 +34,6 @@ public class SimpleServer extends WebSocketServer {
 
     public boolean acceptConnection(String ag, String pc, BlockingQueue<JSONObject> queue) {
         pcQueues.put(pc, queue);
-        // System.out.println(ag + " " + pc);
         pc2conn.get(pc).send("Connected as " + ag + ".");
         return true;
     }
@@ -43,11 +42,10 @@ public class SimpleServer extends WebSocketServer {
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         System.out.println("-- new connection to " + conn.getRemoteSocketAddress());
         String pc = conn.getRemoteSocketAddress().toString();
+        pc2conn.put(pc, conn);
         try {
             newPcQueue.put(pc);
         } catch (InterruptedException e) { return; }
-
-        pc2conn.put(pc, conn);
         conn.send("Acknowledged.");
     }
 
