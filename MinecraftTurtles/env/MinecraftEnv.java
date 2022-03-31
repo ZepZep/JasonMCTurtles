@@ -45,9 +45,7 @@ public class MinecraftEnv extends Environment {
         String pc;
         try {
             pc = newPcQueue.take();
-        } catch (InterruptedException e) {
-            return false;
-        }
+        } catch (InterruptedException e) { return false; }
 
         ag2pc.put(ag, pc);
         pc2ag.put(pc, ag);
@@ -69,6 +67,25 @@ public class MinecraftEnv extends Environment {
         return server.exec(pc, json);
     }
 
+    boolean a_execs(String ag, String action) {
+        JSONObject json = new JSONObject();
+        json.put("func", "return " + action);
+        json.put("sync", "true");
+
+        String pc = ag2pc.get(ag);
+        boolean retval = server.exec(pc, json);
+        if (!retval) { return false; }
+
+        JSONObject obj;
+        try {
+            obj = pcQueues.get(pc).take();
+        } catch (InterruptedException e) { return false; }
+
+        System.out.println(obj.toString());
+
+
+        return true;
+    }
 
     boolean execAndLocate(String ag, String action) {
         JSONObject json = new JSONObject();
@@ -76,7 +93,6 @@ public class MinecraftEnv extends Environment {
         json.put("locate", "true");
 
         server.exec(ag, json);
-
         return true;
     }
 
@@ -91,24 +107,23 @@ public class MinecraftEnv extends Environment {
 
         boolean retval = false;
 
-        if (act.getFunctor().equals("exec")) {
+        // exec, execs
+        if (act.getFunctor().equals("exec") | act.getFunctor().equals("execs")) {
             JSONObject json = new JSONObject();
             String literal = act.getTerm(0).toString();
             literal = literal.substring(1, literal.length()-1);
-            retval = a_exec(ag, literal);
-        } else if (act.getFunctor().equals("execs")) {
-            JSONObject json = new JSONObject();
-            String literal = act.getTerm(0).toString();
-            literal = literal.substring(1, literal.length()-1);
-            json.put("func", "return " + literal);
-            server.broadcast(json.toString());
-            retval = true;
-        } else if (act.getFunctor().equals("longAction")) {
+            if (act.getFunctor().equals("execs")) {
+                retval = a_execs(ag, literal);
+            } else {
+                retval = a_exec(ag, literal);
+            }
+        } // longAction
+        else if (act.getFunctor().equals("longAction")) {
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {}
-            // act.getTerm(0).capply(Unifier())
-        } else if (act.getFunctor().equals("connect")) {
+        } // connect
+        else if (act.getFunctor().equals("connect")) {
             retval = a_connect(ag);
         }
 

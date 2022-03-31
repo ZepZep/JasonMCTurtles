@@ -10,11 +10,13 @@ Inspired by https://github.com/LarsChristianK/WebsocketsTurtleMoveTutorial
 
 
 ## TODO
-- [ ] send commands to specific turtle
-- [ ] synchronous external actions (`execs`)
-- [ ] return values from Minecraft
+- [x] send commands to specific turtle
+- [x] synchronous external actions (`execs`)
+- [x] return values from Minecraft
+- [ ] return values to Jason
+- [ ] Jason `moveTo` function
 - [ ] turtle filesystem scripts
 
 ## Bugs
-- [ ] investigate empty HashMap
-- [ ] server port sometimes full after restart
+- [x] investigate empty HashMap
+- [x] server port sometimes full after restart

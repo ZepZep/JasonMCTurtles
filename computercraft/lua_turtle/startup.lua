@@ -18,23 +18,29 @@ function print_color(msg, color)
 end
 
 function loop(ws)
-    local msg = ws.receive()
+    local ok, msg = pcall(ws.receive)
 --     print(msg)
-    if msg == nil then
+    if not ok or not msg then
         return false, "Receive failed"
     end
     local obj = json.decode(msg)
     if obj ~= nil then
-        exec(obj)
+        exec(obj, ws)
     else
         print(" unk: " .. msg)
     end
     return true
 end
 
-function exec(obj)
+function exec(obj, ws)
     local func = loadstring(obj["func"])
-    func()
+    local out, err = func()
+    if obj["sync"] then
+        local msg = json.encode({
+            finished=obj["func"], out=out, err=err
+        })
+        pcall(function () ws.send(msg) end)
+    end
 end
 
 function connect()

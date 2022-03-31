@@ -56,7 +56,12 @@ public class SimpleServer extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        System.out.println("received message from "    + conn.getRemoteSocketAddress() + ": " + message);
+        // System.out.println("received message from "    + conn.getRemoteSocketAddress() + ": " + message);
+        String pc = conn.getRemoteSocketAddress().toString();
+        JSONObject obj = new JSONObject(message);
+        try {
+            pcQueues.get(pc).put(obj);
+        } catch (InterruptedException e) { return; }
     }
 
     @Override

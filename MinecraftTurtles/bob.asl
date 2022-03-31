@@ -25,10 +25,8 @@ shouldMove.
     !start.
 
 +!move : shouldMove <-
-    exec("turtle.forward()");
-    .wait(500);
-    exec("turtle.turnRight()");
-    .wait(500);
+    execs("turtle.forward()");
+    execs("turtle.turnRight()");
     !move.
 
 +!move : not shouldMove <-
