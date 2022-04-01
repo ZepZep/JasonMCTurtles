@@ -14,8 +14,11 @@ Inspired by https://github.com/LarsChristianK/WebsocketsTurtleMoveTutorial
 - [x] synchronous external actions (`execs`)
 - [x] return values from Minecraft
 - [x] turtle moveTowards function
-- [ ] return values to Jason
-- [ ] Jason `moveTo` goal
+- [x] return values to Jason
+- [x] Jason `moveTo` goal
+- [ ] inventory management
+- [ ] block perception
+- [ ] chatting
 - [ ] turtle filesystem scripts
 
 ## Bugs

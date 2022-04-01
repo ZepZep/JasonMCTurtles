@@ -21,7 +21,10 @@ function loop(ws)
     local ok, msg = pcall(ws.receive)
 --     print(msg)
     if not ok or not msg then
-        return false, "Receive failed"
+        if msg == "Terminated" then
+            error(msg)
+        end
+        return false, "Receive failed: " .. tostring(msg)
     end
     local obj = json.decode(msg)
     if obj ~= nil then
@@ -64,12 +67,18 @@ function hello()
     term.clear()
     term.setCursorPos(1,1)
     print_color("Jason turtle agent v.0.42", colors.orange)
+end
+
+function calibrate()
     print(" Getting location with GPS")
-    tst.calibrate()
+    if not tst.calibrate() then
+        error("Failed to calibrate")
+    end
     print("   Located at " .. tst.fullLocate())
 end
 
 hello()
+calibrate()
 
 while true do
     local ws = connect()

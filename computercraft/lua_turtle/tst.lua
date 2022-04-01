@@ -53,9 +53,9 @@ end
 
 function fullLocate()
   if x ~= nil then
-    return tostring(x) .." ".. tostring(y) .." ".. tostring(z) .." ".. tostring(face)
+    return tostring(x) ..",".. tostring(y) ..",".. tostring(z) .."|".. tostring(face)
   else
-    return nil
+    return nil, "Not calibrated"
   end
 end
 
@@ -210,4 +210,22 @@ function moveTowards(fx, fy, fz, fdir)
       return forward()
     end
   end
+end
+
+function randomMove()
+  if math.random(2) == 1 then -- vertical
+    if math.random(2) == 1 then
+      up()
+    else
+      down()
+    end
+  else  -- horizontal
+    if math.random(2) == 1 then
+      turnRight()
+    else
+      turnLeft()
+    end
+    forward()
+  end
+  return true
 end

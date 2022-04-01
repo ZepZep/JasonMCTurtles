@@ -1,33 +1,40 @@
+/* Agent bob */
+
+{ include("connection.asl") }
+{ include("movement.asl") }
+
+/* Initial goal */
 !start.
+// !test.
 
-shouldMove.
-
+/* Plans */
 +!start : true <-
     !connect;
-    !move.
+    !explore.
 
-+!connect : not connected <-
-    connect.
++!test : true <-
+    // .print("A" + "B");
+    +reason(kocka1)[source(percept)];
+    +reason(kocka2)[source(percept)];
+    +reason(kocka3)[source(percept)];
+    returning;
+    ?reason(R);
+    .print(R);
+    // ?reason(kocka2);
+    // ?reason(kocka3);
 
--!connect : not connected <-
-    .print("Failed to connect, will try again 5 seconds.");
-    .wait(5000);
-    !connect.
 
-+connected : true <-
-    .wait(50);
-    ?pc(Pc);
-    .print("Connected to ", Pc).
+    +v1(0);
+    .print("while");
+    while(v1(X) & X < 1) { // where vl(X) is a belief
+        .print("loop ", X);
+        !testOnce;
+        -+v1(X+1);
+    }.
 
--connected : true <-
-    .print("Disconnected, dropping everything, trying to reconnect.");
-    .drop_all_desires;
-    !start.
++!testOnce : true <-
+    returning;
+    ?reason(X)[source(S)];
+    -reason(X)[source(S)];
+    .print(X, " ", S).
 
-+!move : shouldMove <-
-    execs("turtle.forward()");
-    execs("turtle.turnRight()");
-    !move.
-
-+!move : not shouldMove <-
-    true.

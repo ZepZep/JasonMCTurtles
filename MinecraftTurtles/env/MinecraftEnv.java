@@ -26,6 +26,49 @@ public class MinecraftEnv extends Environment {
 
     HashMap<String, BlockingQueue<JSONObject>> pcQueues;
 
+    interface ExecsAfterEffects {
+        public boolean call(String ag, JSONObject obj);
+    }
+
+    class ReportEAE implements ExecsAfterEffects {
+        public boolean call(String ag, JSONObject obj) {
+            removePerceptsByUnif(ag, Literal.parseLiteral("execs_out(X)"));
+            removePerceptsByUnif(ag, Literal.parseLiteral("execs_err(X)"));
+            if (obj.has("out")) {
+                addPercept(ag, Literal.parseLiteral("execs_out(\"" + obj.get("out") + "\")"));
+            }
+            if (obj.has("err")) {
+                addPercept(ag, Literal.parseLiteral("execs_err(\"" + obj.get("err") + "\")"));
+            }
+            return !obj.has("err");
+        }
+    }
+
+    class LocationEAE implements ExecsAfterEffects {
+        public boolean call(String ag, JSONObject obj) {
+            removePerceptsByUnif(ag, Literal.parseLiteral("execs_out(X)"));
+            removePerceptsByUnif(ag, Literal.parseLiteral("execs_err(X)"));
+            removePerceptsByUnif(ag, Literal.parseLiteral("at(X,Y,Z)"));
+            removePerceptsByUnif(ag, Literal.parseLiteral("facing(Dir)"));
+            if (obj.has("out")) {
+                String out = obj.get("out").toString();
+                addPercept(ag, Literal.parseLiteral("execs_out(\"" + out + "\")"));
+                if (out.contains("|")) {
+                    String[] parts = out.split("\\|");
+                    addPercept(ag, Literal.parseLiteral("at(" + parts[0] + ")"));
+                    addPercept(ag, Literal.parseLiteral("facing(" + parts[1] + ")"));
+                }
+            }
+            if (obj.has("err")) {
+                addPercept(ag, Literal.parseLiteral("execs_err(\"" + obj.get("err") + "\")"));
+            }
+            return !obj.has("err");
+        }
+    }
+
+    ReportEAE reportEffects;
+    LocationEAE locationEffects;
+
     @Override
     public void init(String[] args) {
         String host = "localhost";
@@ -39,6 +82,9 @@ public class MinecraftEnv extends Environment {
         server = new SimpleServer(new InetSocketAddress(host, port), newPcQueue);
         server.setReuseAddr(true);
         server.start();
+
+        reportEffects = new ReportEAE();
+        locationEffects = new LocationEAE();
     }
 
     boolean a_connect(String ag) {
@@ -67,7 +113,7 @@ public class MinecraftEnv extends Environment {
         return server.exec(pc, json);
     }
 
-    boolean a_execs(String ag, String action) {
+    boolean a_execs(String ag, String action, ExecsAfterEffects effects) {
         JSONObject json = new JSONObject();
         json.put("func", "return " + action);
         json.put("sync", "true");
@@ -81,21 +127,8 @@ public class MinecraftEnv extends Environment {
             obj = pcQueues.get(pc).take();
         } catch (InterruptedException e) { return false; }
 
-        System.out.println(obj.toString());
-
-
-        return true;
+        return effects.call(ag, obj);
     }
-
-    boolean execAndLocate(String ag, String action) {
-        JSONObject json = new JSONObject();
-        json.put("func", "return " + "a");
-        json.put("locate", "true");
-
-        server.exec(ag, json);
-        return true;
-    }
-
 
     /**
      * Implementation of the agent's basic actions
@@ -113,11 +146,17 @@ public class MinecraftEnv extends Environment {
             String literal = act.getTerm(0).toString();
             literal = literal.substring(1, literal.length()-1);
             if (act.getFunctor().equals("execs")) {
-                retval = a_execs(ag, literal);
+                retval = a_execs(ag, literal, reportEffects);
             } else {
                 retval = a_exec(ag, literal);
             }
-        } // longAction
+        }
+        // locate
+        else if (act.getFunctor().equals("locate")) {
+            JSONObject json = new JSONObject();
+            retval = a_execs(ag, "tst.fullLocate()", locationEffects);
+        }
+        // longAction
         else if (act.getFunctor().equals("longAction")) {
             try {
                 Thread.sleep(2000);
@@ -125,6 +164,11 @@ public class MinecraftEnv extends Environment {
         } // connect
         else if (act.getFunctor().equals("connect")) {
             retval = a_connect(ag);
+        }
+        else if (act.getFunctor().equals("returning")) {
+            retval = true;
+            removePerceptsByUnif(ag, Literal.parseLiteral("reason(X)"));
+            addPercept(ag, Literal.parseLiteral("reason(pes)"));
         }
 
         informAgsEnvironmentChanged();
