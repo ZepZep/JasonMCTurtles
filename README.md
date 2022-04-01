@@ -13,8 +13,9 @@ Inspired by https://github.com/LarsChristianK/WebsocketsTurtleMoveTutorial
 - [x] send commands to specific turtle
 - [x] synchronous external actions (`execs`)
 - [x] return values from Minecraft
+- [x] turtle moveTowards function
 - [ ] return values to Jason
-- [ ] Jason `moveTo` function
+- [ ] Jason `moveTo` goal
 - [ ] turtle filesystem scripts
 
 ## Bugs

@@ -64,6 +64,9 @@ function hello()
     term.clear()
     term.setCursorPos(1,1)
     print_color("Jason turtle agent v.0.42", colors.orange)
+    print(" Getting location with GPS")
+    tst.calibrate()
+    print("   Located at " .. tst.fullLocate())
 end
 
 hello()
