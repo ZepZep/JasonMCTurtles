@@ -6,16 +6,17 @@ faceMap(west, 2).
 faceMap(north, 3).
 
 
-facing(east)  :- facing(0).
-facing(south) :- facing(1).
-facing(west)  :- facing(2).
-facing(north) :- facing(3).
+facing(Dir) :- faceMap(Dir, X) & facing(X).
+
+// facing(east)  :- facing(0).
+// facing(south) :- facing(1).
+// facing(west)  :- facing(2).
+// facing(north) :- facing(3).
 
 poi(chest, -135, 65, 145, west).
 poi(furnace, -129, 67, 149, east).
 
 at(X, Y, Z, Dir) :- at(X, Y, Z) & facing(Dir).
-
 
 +!moveTo(POI) : poi(POI, X, Y, Z, Dir) <-
     !moveTo(X, Y, Z, Dir).

@@ -1,5 +1,7 @@
 os.loadAPI("json.lua")
 os.loadAPI("tst.lua")
+os.loadAPI("inv.lua")
+
 
 local port = "8887"
 local addr = "ws://localhost:"..port

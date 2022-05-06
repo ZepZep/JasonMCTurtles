@@ -81,7 +81,7 @@ function forward()
   end
 
   if not calibrated then
-    return ok, "Not calibrated"
+    return false, "Not calibrated"
   end
 
   local delta = directions[face]
@@ -99,7 +99,7 @@ function back() -- go back
   end
 
   if not calibrated then
-    return ok, "Not calibrated"
+    return false, "Not calibrated"
   end
 
   local delta = directions[face]
@@ -115,7 +115,7 @@ function up()
     return ok, err
   end
   if not calibrated then
-    return ok, "Not calibrated"
+    return false, "Not calibrated"
   end
 
   y = y + 1
@@ -128,7 +128,7 @@ function down() -- go down
     return ok, err
   end
   if not calibrated then
-    return ok, "Not calibrated"
+    return false, "Not calibrated"
   end
 
   y = y - 1

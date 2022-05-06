@@ -13,6 +13,8 @@ import org.json.JSONObject;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
+import java.util.Iterator;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -25,6 +27,10 @@ public class MinecraftEnv extends Environment {
     HashMap<String, String> pc2ag;
 
     HashMap<String, BlockingQueue<JSONObject>> pcQueues;
+
+    String escape(String s){
+        return s.replaceAll("\"", "\\\"");
+    }
 
     interface ExecsAfterEffects {
         public boolean call(String ag, JSONObject obj);
@@ -61,6 +67,33 @@ public class MinecraftEnv extends Environment {
             }
             if (obj.has("err")) {
                 addPercept(ag, Literal.parseLiteral("execs_err(\"" + obj.get("err") + "\")"));
+        }
+            return !obj.has("err");
+        }
+    }
+
+    class InvEAE implements ExecsAfterEffects {
+        public boolean call(String ag, JSONObject obj) {
+            removePerceptsByUnif(ag, Literal.parseLiteral("execs_out(X)"));
+            removePerceptsByUnif(ag, Literal.parseLiteral("execs_err(X)"));
+            if (obj.has("out")) {
+                String out = obj.get("out").toString();
+                // addPercept(ag, Literal.parseLiteral("execs_out(\"" + out + "\")"));
+                // loop through map, update only present
+                JSONObject outobj = (JSONObject)obj.get("out");
+                for (Iterator<String> i = outobj.keys(); i.hasNext(); ) {
+                    String key  = i.next();
+                    int index = Integer.valueOf(key);
+                    JSONObject content = (JSONObject)outobj.get(key);
+                    removePerceptsByUnif(ag, Literal.parseLiteral("slot(" + key + ", Name, Count)"));
+                    String name = (String)content.get("name");
+                    int count = (int)content.get("count");
+                    // System.out.println("Agent "+ag+" got inv "+key+" "+name+" "+count);
+                    addPercept(ag, Literal.parseLiteral("slot(" +key+", \""+name+"\", "+count+")"));
+                }
+            }
+            if (obj.has("err")) {
+                addPercept(ag, Literal.parseLiteral("execs_err(\"" + obj.get("err") + "\")"));
             }
             return !obj.has("err");
         }
@@ -68,6 +101,7 @@ public class MinecraftEnv extends Environment {
 
     ReportEAE reportEffects;
     LocationEAE locationEffects;
+    InvEAE invntoryEffects;
 
     @Override
     public void init(String[] args) {
@@ -85,6 +119,7 @@ public class MinecraftEnv extends Environment {
 
         reportEffects = new ReportEAE();
         locationEffects = new LocationEAE();
+        invntoryEffects = new InvEAE();
     }
 
     boolean a_connect(String ag) {
@@ -142,7 +177,6 @@ public class MinecraftEnv extends Environment {
 
         // exec, execs
         if (act.getFunctor().equals("exec") | act.getFunctor().equals("execs")) {
-            JSONObject json = new JSONObject();
             String literal = act.getTerm(0).toString();
             literal = literal.substring(1, literal.length()-1);
             if (act.getFunctor().equals("execs")) {
@@ -153,8 +187,13 @@ public class MinecraftEnv extends Environment {
         }
         // locate
         else if (act.getFunctor().equals("locate")) {
-            JSONObject json = new JSONObject();
             retval = a_execs(ag, "tst.fullLocate()", locationEffects);
+        }
+        // slots
+        else if (act.getFunctor().equals("inv")) {
+            String literal = act.getTerm(0).toString();
+            literal = literal.substring(1, literal.length()-1);
+            retval = a_execs(ag, literal, invntoryEffects);
         }
         // longAction
         else if (act.getFunctor().equals("longAction")) {
