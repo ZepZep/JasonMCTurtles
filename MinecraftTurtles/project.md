@@ -20,7 +20,9 @@
 * glass
     * sand
 * gold
+    * gold ore
 * chest
     * wood
 * fuel
+    * wood
 
