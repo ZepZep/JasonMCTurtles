@@ -28,12 +28,21 @@ public class MinecraftEnv extends Environment {
 
     HashMap<String, BlockingQueue<JSONObject>> pcQueues;
 
+    interface ExecsAfterEffects {
+        public boolean call(String ag, JSONObject obj);
+    }
+
+    HashMap<String, ExecsAfterEffects> execsMap;
+
+
     String escape(String s){
         return s.replaceAll("\"", "\\\"");
     }
 
-    interface ExecsAfterEffects {
-        public boolean call(String ag, JSONObject obj);
+    class EmptyEAE implements ExecsAfterEffects {
+        public boolean call(String ag, JSONObject obj) {
+            return true;
+        }
     }
 
     class ReportEAE implements ExecsAfterEffects {
@@ -42,6 +51,20 @@ public class MinecraftEnv extends Environment {
             removePerceptsByUnif(ag, Literal.parseLiteral("execs_err(X)"));
             if (obj.has("out")) {
                 addPercept(ag, Literal.parseLiteral("execs_out(\"" + obj.get("out") + "\")"));
+            }
+            if (obj.has("err")) {
+                addPercept(ag, Literal.parseLiteral("execs_err(\"" + obj.get("err") + "\")"));
+            }
+            return !obj.has("err");
+        }
+    }
+
+    class LiteralEAE implements ExecsAfterEffects {
+        public boolean call(String ag, JSONObject obj) {
+            removePerceptsByUnif(ag, Literal.parseLiteral("execs_out(X)"));
+            removePerceptsByUnif(ag, Literal.parseLiteral("execs_err(X)"));
+            if (obj.has("out")) {
+                addPercept(ag, Literal.parseLiteral("execs_out(" + obj.get("out") + ")"));
             }
             if (obj.has("err")) {
                 addPercept(ag, Literal.parseLiteral("execs_err(\"" + obj.get("err") + "\")"));
@@ -99,9 +122,7 @@ public class MinecraftEnv extends Environment {
         }
     }
 
-    ReportEAE reportEffects;
     LocationEAE locationEffects;
-    InvEAE invntoryEffects;
 
     @Override
     public void init(String[] args) {
@@ -117,9 +138,13 @@ public class MinecraftEnv extends Environment {
         server.setReuseAddr(true);
         server.start();
 
-        reportEffects = new ReportEAE();
+        execsMap = new HashMap<String, ExecsAfterEffects>();
+
+        execsMap.put("execs", new ReportEAE());
+        execsMap.put("execs_literal", new LiteralEAE());
+        execsMap.put("inv", new InvEAE());
+
         locationEffects = new LocationEAE();
-        invntoryEffects = new InvEAE();
     }
 
     boolean a_connect(String ag) {
@@ -171,43 +196,52 @@ public class MinecraftEnv extends Environment {
     @Override
     public boolean executeAction(String ag, Structure act) {
         // System.out.println("Agent "+ag+" is doing "+act);
-        clearPercepts();
+        // clearPercepts();
 
         boolean retval = false;
+        String functor = act.getFunctor();
 
-        // exec, execs
-        if (act.getFunctor().equals("exec") | act.getFunctor().equals("execs")) {
+        // execs
+        if (execsMap.containsKey(functor)) {
             String literal = act.getTerm(0).toString();
             literal = literal.substring(1, literal.length()-1);
-            if (act.getFunctor().equals("execs")) {
-                retval = a_execs(ag, literal, reportEffects);
-            } else {
-                retval = a_exec(ag, literal);
-            }
+
+            retval = a_execs(ag, literal, execsMap.get(functor));
+
+            // switch(functor) {
+                // case x:
+                    // retval = a_execs(ag, literal, reportEffects);
+                // default:
+                // // code block
+            // }
+            //
+            // sw
+            // if (act.getFunctor().equals("execs")) {
+                // retval = a_execs(ag, literal, reportEffects);
+            // } else if (act.getFunctor().equals("execs_int")) {
+                // retval = a_execs(ag, literal, reportEffects);
+            // } else {
+                // retval = a_exec(ag, literal);
+            // }
+        }
+        // exec
+        else if (functor.equals("exec")) {
+            String literal = act.getTerm(0).toString();
+            literal = literal.substring(1, literal.length()-1);
+            retval = a_exec(ag, literal);
         }
         // locate
-        else if (act.getFunctor().equals("locate")) {
+        else if (functor.equals("locate")) {
             retval = a_execs(ag, "tst.fullLocate()", locationEffects);
         }
-        // slots
-        else if (act.getFunctor().equals("inv")) {
-            String literal = act.getTerm(0).toString();
-            literal = literal.substring(1, literal.length()-1);
-            retval = a_execs(ag, literal, invntoryEffects);
-        }
         // longAction
-        else if (act.getFunctor().equals("longAction")) {
+        else if (functor.equals("longAction")) {
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {}
         } // connect
-        else if (act.getFunctor().equals("connect")) {
+        else if (functor.equals("connect")) {
             retval = a_connect(ag);
-        }
-        else if (act.getFunctor().equals("returning")) {
-            retval = true;
-            removePerceptsByUnif(ag, Literal.parseLiteral("reason(X)"));
-            addPercept(ag, Literal.parseLiteral("reason(pes)"));
         }
 
         informAgsEnvironmentChanged();

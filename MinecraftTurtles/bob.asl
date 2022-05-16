@@ -5,7 +5,7 @@
 { include("inventory.asl") }
 
 /* Initial goal */
-!start.
+// !start.
 // !test.
 
 /* Plans */
