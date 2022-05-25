@@ -229,3 +229,34 @@ function randomMove()
   end
   return true
 end
+
+
+function inspect()
+    local ok, output = turtle.inspect()
+
+    if not ok then
+        return "minecraft:air"
+    end
+
+    return output.name
+end
+
+function inspectUp()
+    local ok, output = turtle.inspectUp()
+
+    if not ok then
+        return "minecraft:air"
+    end
+
+    return output.name
+end
+
+function inspectDown()
+    local ok, output = turtle.inspectDown()
+
+    if not ok then
+        return "minecraft:air"
+    end
+
+    return output.name
+end

@@ -10,7 +10,6 @@ faceDelta(south, delta(0, 1)).
 faceDelta(west,  delta(-1, 0)).
 faceDelta(north, delta(0, -1)).
 
-
 facingW(Dir) :- faceMap(Dir, X) & facing(X).
 
 poi(chest, -135, 65, 145, west).
@@ -55,7 +54,7 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
 
 -!moveTo(X, Y, Z, Dir) : execs_err(Err) & Err == "Movement obstructed" <-
     execs("tst.randomMove()");
-    !moveTo(X, Y, Z, Dir, Trials-1).
+    !moveTo(X, Y, Z, Dir).
 
 -!moveTo(X, Y, Z, Dir) : execs_err(Err) <-
     .print("Failed moveTo with: ", Err);
@@ -104,3 +103,41 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     .print("I am facing near the furnace.");
     .wait(3000);
     !exploreFacing.
+
+
+@lookAroundAtom[atomic]
++!lookAround : true <-
+    execs("tst.inspect()");
+    ?execs_out(FrontBlock);
+    -+front_block(FrontBlock);
+    execs("tst.inspectUp()");
+    ?execs_out(AboveBlock);
+    -+above_block(AboveBlock);
+    execs("tst.inspectDown()");
+    ?execs_out(BelowBlock);
+    -+below_block(BelowBlock).
+
+@move_checkAtom[atomic]
++!move_check(Fcn): true <-
+    execs(Fcn);
+    !check_front;
+    !check_above;
+    !check_below;
+    locate.
+
++!check_front: true <-
+    execs("tst.inspect()");
+    ?execs_out(FrontBlock);
+    -+front_block(FrontBlock).
+
+-!check_front: true <- .print("front").
+
++!check_above: true <-
+    execs("tst.inspectUp()");
+    ?execs_out(AboveBlock);
+    -+above_block(AboveBlock).
+
++!check_below: true <-
+    execs("tst.inspectDown()");
+    ?execs_out(BelowBlock);
+    -+below_block(BelowBlock).
