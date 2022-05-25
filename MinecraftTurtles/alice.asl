@@ -3,18 +3,34 @@
 { include("connection.asl") }
 { include("movement.asl") }
 { include("inventory.asl") }
-
-minimum_fuel_level(100).
-
+{ include("mining.asl") }
+{ include("smelting.asl") }
+{ include("woodcutting.asl") }
+{ include("crafting.asl") }
 
 /* Initial goal */
 !start.
-!keep_fueled.
 
 /* Plans */
 +!start : true <-
+	.set.create(Q);                // Q = []
+	.set.add(Q,a);                 // Q = [a]
+	.set.add(Q,b);
+	.set.add(Q,c);
+	.set.add(Q,a); 
+	.print(Q);
     !connect;
-    !invDebug;
-    !fuelDebug;
-    !explore.
+	//execs("inv.idSlot(1)");
+	!craft(turtle, 1).
+	//?execs_out(Num);
+	//.print(Num).
+	//!woodCutting;
+	//!smeltGlass(14, 15, 8);
+	//!invDebug.
+	//inv("inv.checkSlots()").
+	//!smeltGlass;
+	
+	//!invDebug;
+	//!woodCutting;
+    //!coalMining.
 
