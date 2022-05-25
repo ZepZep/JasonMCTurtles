@@ -12,6 +12,6 @@ MAS minecraft_turtles {
     environment: env.MinecraftEnv
 
     agents:
-        bob;
+        //bob;
         alice;
 }
