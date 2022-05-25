@@ -35,7 +35,7 @@
 
 
 +!keep_fueled : not connected <-
-    .wait(1000);
+    .wait(10000);
     !keep_fueled.
 
 +!keep_fueled : refueling <-

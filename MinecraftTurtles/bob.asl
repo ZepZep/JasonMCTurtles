@@ -5,14 +5,48 @@
 { include("inventory.asl") }
 
 /* Initial goal */
-// !start.
+!start.
 // !test.
+
+// !testFail.
+// !testLists.
+
 
 /* Plans */
 +!start : true <-
     !connect;
     !invDebug;
-    !explore.
+    !exploreFacing.
+    // !explore.
+
+
++!testLists : true <- true.
+
+
++!testFail : true <-
+    !inner1;
+    .wait(5000);
+    !testFail.
+
++!inner1 : true <-
+    .print("start inner1");
+    !inner2.
+
+-!inner1 : true <-
+    .print("inner1 failed");
+    .intention(_,_,S,current);
+    .length(S, L);
+    .nth(L-1,S,I);
+    .print(S).
+
++!inner2 : true <-
+    .print("start inner2");
+    .fail.
+
+-!inner2 : true <-
+    .print("inner2 failed");
+    .fail.
+
 
 +!test : true <-
     // .print("A" + "B");

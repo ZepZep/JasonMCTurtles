@@ -207,22 +207,6 @@ public class MinecraftEnv extends Environment {
             literal = literal.substring(1, literal.length()-1);
 
             retval = a_execs(ag, literal, execsMap.get(functor));
-
-            // switch(functor) {
-                // case x:
-                    // retval = a_execs(ag, literal, reportEffects);
-                // default:
-                // // code block
-            // }
-            //
-            // sw
-            // if (act.getFunctor().equals("execs")) {
-                // retval = a_execs(ag, literal, reportEffects);
-            // } else if (act.getFunctor().equals("execs_int")) {
-                // retval = a_execs(ag, literal, reportEffects);
-            // } else {
-                // retval = a_exec(ag, literal);
-            // }
         }
         // exec
         else if (functor.equals("exec")) {
