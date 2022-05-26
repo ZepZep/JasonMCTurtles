@@ -18,15 +18,20 @@ import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 
 public class MinecraftEnv extends Environment {
     SimpleServer server;
 
     BlockingQueue<String> newPcQueue;
+    HashMap<String, LinkedBlockingQueue<String>> newPcQueues;
     HashMap<String, String> ag2pc;
     HashMap<String, String> pc2ag;
 
     HashMap<String, BlockingQueue<JSONObject>> pcQueues;
+    HashMap<String, ReentrantLock> pcLocks;
+    
 
     interface ExecsAfterEffects {
         public boolean call(String ag, JSONObject obj);
@@ -65,9 +70,12 @@ public class MinecraftEnv extends Environment {
             removePerceptsByUnif(ag, Literal.parseLiteral("execs_err(X)"));
             if (obj.has("out")) {
                 addPercept(ag, Literal.parseLiteral("execs_out(" + obj.get("out") + ")"));
+                System.out.println("  XXX "+ obj.get("finished"));
+                System.out.println("  XXX "+ obj.get("out"));
             }
             if (obj.has("err")) {
                 addPercept(ag, Literal.parseLiteral("execs_err(\"" + obj.get("err") + "\")"));
+                System.out.println("  XXX "+ obj.get("err"));
             }
             return !obj.has("err");
         }
@@ -82,8 +90,8 @@ public class MinecraftEnv extends Environment {
             if (obj.has("out")) {
                 String out = obj.get("out").toString();
                 addPercept(ag, Literal.parseLiteral("execs_out(\"" + out + "\")"));
-                if (out.contains("|")) {
-                    String[] parts = out.split("\\|");
+                if (out.contains(", ")) {
+                    String[] parts = out.split(", ");
                     addPercept(ag, Literal.parseLiteral("at(" + parts[0] + ")"));
                     addPercept(ag, Literal.parseLiteral("facing(" + parts[1] + ")"));
                 }
@@ -128,13 +136,20 @@ public class MinecraftEnv extends Environment {
     public void init(String[] args) {
         String host = "localhost";
         int port = 8887;
+        int nChannels=10;
 
         newPcQueue = new LinkedBlockingQueue<String>();
+        newPcQueues = new HashMap<String, LinkedBlockingQueue<String>>();
+        for (int i=0; i<nChannels; i++) {
+            newPcQueues.put(Integer.toString(i), new LinkedBlockingQueue<String>());
+        }
+
         ag2pc = new HashMap<String, String>();
         pc2ag = new HashMap<String, String>();
         pcQueues = new HashMap<String, BlockingQueue<JSONObject>>();
+        pcLocks = new HashMap<String, ReentrantLock>();
 
-        server = new SimpleServer(new InetSocketAddress(host, port), newPcQueue);
+        server = new SimpleServer(new InetSocketAddress(host, port), newPcQueues);
         server.setReuseAddr(true);
         server.start();
 
@@ -147,15 +162,18 @@ public class MinecraftEnv extends Environment {
         locationEffects = new LocationEAE();
     }
 
-    boolean a_connect(String ag) {
+    boolean a_connect(String ag, String channel) {
         String pc;
+        if (!newPcQueues.containsKey(channel)) return false;
+        
         try {
-            pc = newPcQueue.take();
+            pc = newPcQueues.get(channel).take();
         } catch (InterruptedException e) { return false; }
 
         ag2pc.put(ag, pc);
         pc2ag.put(pc, ag);
         pcQueues.put(pc, new LinkedBlockingQueue<JSONObject>());
+        pcLocks.put(pc, new ReentrantLock());
 
         boolean retval = server.acceptConnection(ag, pc, pcQueues.get(pc));
         if (!retval) { return false; }
@@ -179,15 +197,24 @@ public class MinecraftEnv extends Environment {
         json.put("sync", "true");
 
         String pc = ag2pc.get(ag);
+        pcLocks.get(pc).lock();
         boolean retval = server.exec(pc, json);
-        if (!retval) { return false; }
+        if (!retval) { 
+            pcLocks.get(pc).unlock();
+            return false;
+        }
 
         JSONObject obj;
         try {
             obj = pcQueues.get(pc).take();
-        } catch (InterruptedException e) { return false; }
+        } catch (InterruptedException e) {
+            pcLocks.get(pc).unlock();
+            return false;
+        }
 
-        return effects.call(ag, obj);
+        retval = effects.call(ag, obj);
+        pcLocks.get(pc).unlock();
+        return retval;
     }
 
     /**
@@ -225,7 +252,19 @@ public class MinecraftEnv extends Environment {
             } catch (InterruptedException e) {}
         } // connect
         else if (functor.equals("connect")) {
-            retval = a_connect(ag);
+            int arity = act.getArity();
+            if (arity == 0) {
+                retval = a_connect(ag, "0");
+            } else {
+                String channel = act.getTerm(0).toString();
+                channel = channel.substring(1, channel.length()-1);
+                retval = a_connect(ag, channel);
+            }
+
+            
+        }
+        if(!retval) {
+            System.out.println("XXX [" + ag + "] action " + act + " FAILED.");
         }
 
         informAgsEnvironmentChanged();

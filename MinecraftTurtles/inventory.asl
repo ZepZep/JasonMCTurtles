@@ -27,46 +27,63 @@
         .print(FuelLevel, " fuel is plenty, I don't have to worry.");
     }.
 
-@getFuelLevel[atomic]
-+!check_fuel_level : true <-
+@getFuelLevel[priority(100)]
++!observe_fuel_level : true <-
     execs_literal("turtle.getFuelLevel()");
     ?execs_out(FuelLevel);
-    -+fuel_amount(FuelLevel).
-
+    -fuel_amount(X);
+    +fuel_amount(FuelLevel).
 
 +!keep_fueled : not connected <-
-    .wait(10000);
+    .wait(5000);
+    !keep_fueled.
+    
++!keep_fueled :  true <-
+    !check_fuel_level;
+    .wait(30000);
     !keep_fueled.
 
-+!keep_fueled : refueling <-
-    !check_fuel_level;
++!check_fuel_level : refueling <-
+    !observe_fuel_level;
     ?fuel_amount(FuelLevel);
-    .print("Checked fuel during refueling: ", FuelLevel);
-    .wait(60000);
-    !keep_fueled.
+    .print("Checked fuel during refueling: ", FuelLevel).
 
-
-+!keep_fueled : minimum_fuel_level(Minimum) <-
-    !check_fuel_level;
++!check_fuel_level : minimum_fuel_level(Minimum) <-
+    !observe_fuel_level;
     ?fuel_amount(FuelLevel);
     .print("Checked fuel: ", FuelLevel);
-    if (FuelLevel < Minimum) {
+    if (FuelLevel <= Minimum) {
         .print("Fuel level low, going to refuel!");
         +refueling;
-        // FIXME suspend other intentions
+        !list_intentions("PREINT");
         !refuel;
+        !list_intentions("POSTINT");
         -refueling;
         // FIXME un-suspend other intentions
-    }
-    .wait(60000);
-    !keep_fueled.
+    }.
 
++!list_intentions(Prefix) : true <-
+    // .findall(X, .intend(X), L);
+    .findall(X, .intention(_, _, X), L);
+    for (.member(X, L)) {
+        .print(Prefix, X);
+    }.
+    
+    
+@refuelAtom[priority(90)]
++!refuel : fuel_amount(Fuel) & Fuel > 0 <-
+    .print("Moving to refuel.");
+    !observe_fuel_level;
+    !moveTo(fuel);
+    execs("turtle.select(16)");
+    execs("turtle.suck(4)");
+    execs("turtle.refuel()").
+    
++!refuel : fuel_amount(Fuel) & Fuel == 0 <-
+    .print("Asking to refuel.");
+    !observe_fuel_level;
+    !ask_for_rescue.
 
-// FIXME implement refueling
-+!refuel : true <- true.
-
-// -!refuel : fuel_amount(Fuel) & Fuel == 0 <-
-    // call for help.
-    //
-// -!refuel : fuel_amount(Fuel) & Fuel > 0 <-
-    // go get fuel.
+-!refuel : true <-
+    !observe_fuel_level;
+    !refuel.

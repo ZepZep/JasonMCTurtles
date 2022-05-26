@@ -14,6 +14,7 @@ local directions = {
 }
 
 function getFacing(x0, z0, x1, z1)
+-- print(x0, z0, x1, z1)
   if x1 == x0 + 1 then
     return 0
   elseif z1 == z0 + 1 then
@@ -28,6 +29,9 @@ end
 -- get gps using other computers
 function calibrate()
   local x0, y0, z0 = gps.locate()
+  x = x0
+  y = y0
+  z = z0
   local i = 0
   calibrated = false
   while not calibrated and i < 4 do
@@ -53,7 +57,7 @@ end
 
 function fullLocate()
   if x ~= nil then
-    return tostring(x) ..",".. tostring(y) ..",".. tostring(z) .."|".. tostring(face)
+    return tostring(x) ..",".. tostring(y) ..",".. tostring(z) ..", ".. tostring(face)
   else
     return nil, "Not calibrated"
   end

@@ -11,16 +11,18 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 
 
 public class SimpleServer extends WebSocketServer {
-    BlockingQueue<String> newPcQueue;
+    HashMap<String, LinkedBlockingQueue<String>> newPcQueues;
     HashMap<String, BlockingQueue<JSONObject>> pcQueues;
     HashMap<String, WebSocket> pc2conn;
 
-    public SimpleServer(InetSocketAddress address, BlockingQueue<String> _newPcQueue) {
+    public SimpleServer(InetSocketAddress address, HashMap<String, LinkedBlockingQueue<String>> _newPcQueues) {
         super(address);
-        newPcQueue = _newPcQueue;
+        newPcQueues = _newPcQueues;
         pcQueues = new HashMap<>();
         pc2conn = new HashMap<String, WebSocket>();
     }
@@ -40,11 +42,20 @@ public class SimpleServer extends WebSocketServer {
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
-        System.out.println("-- new connection to " + conn.getRemoteSocketAddress());
         String pc = conn.getRemoteSocketAddress().toString();
+        String channel = "0";
+        if (handshake.hasFieldValue("turtlechannel")) {
+            channel = handshake.getFieldValue("turtlechannel");
+        }
+        System.out.println("-- new connection to " + pc + " on channel " + channel);
+        if (!newPcQueues.containsKey(channel)) {
+            conn.send("Unknown channel: "+channel);
+            return;
+        }
+
         pc2conn.put(pc, conn);
         try {
-            newPcQueue.put(pc);
+            newPcQueues.get(channel).put(pc);
         } catch (InterruptedException e) { return; }
         conn.send("Acknowledged.");
     }

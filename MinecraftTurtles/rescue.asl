@@ -15,6 +15,10 @@ unify_best_response(BestDist, BestId, CurDist, CurId, PreDist, PreId) :-
 rescuers(X) :- .findall(A, is_rescuer(A), X).
 is_rescuer(XT) :- .all_names(Names) &.member(XT, Names) & .term2string(XT, XS) & .prefix("rescuer", XS).
 
+is_fuel("minecraft:charcoal").
+can_pickup_more_fuel(X) :- is_fuel(X).
+can_pickup_more_fuel("empty").
+
 
 +!ask_for_rescue : at(X,Y,Z) & .my_name(Name) & rescuers(Rescuers) <-
     .print("Help!");
@@ -32,12 +36,36 @@ is_rescuer(XT) :- .all_names(Names) &.member(XT, Names) & .term2string(XT, XS) &
      };
      ?best_response(Dist, Id, Responses);
      .print("Accepting rescue from ", Id);
-     .send(Id, tell, accept_rescue(Name, X,Y,Z)).
+     .send(Id, tell, accept_rescue(Name, X,Y,Z));
+     !wait_for_fuel.
 
--!ask_for_rescue:
-    .at("now +1000", {+!ask_for_rescue}).
+-!ask_for_rescue : not at(X,Y,Z) <-
+    .print("Asking for rescue but dont know my position.");
+    .fail.
 
+-!ask_for_rescue : true <-
+    // .drop_intention(ask_for_rescue);
+    .wait(2000);
+    !ask_for_rescue.
+    
++!wait_for_fuel : fuel_transfered[source(_)] & is_fuel(Fuel)<-
+    .print("Finally got fuel!");
+    inv("inv.checkSlots()");
+    ?slot(Slot, "minecraft:charcoal", Count);
+    .concat("turtle.select(",Slot,")",Fcn);
+    execs(Fcn);
+    execs("turtle.refuel()");
+    -fuel_transfered[source(_)].
+    
+-!wait_for_fuel : true <-
+    !invDebug.
+ 
++!wait_for_fuel : true <-
+    .print("Awaiting fuel");
+    .wait(1000);
+    !wait_for_fuel.
 
+@rescue_received_atom[priority(1000)]
 +rescue_request(Name, X, Y, Z) :
     role(rescuer) & not rescuing(Turtle) &
     not awaiting_response & at(MX, MY, MZ)
@@ -47,7 +75,7 @@ is_rescuer(XT) :- .all_names(Names) &.member(XT, Names) & .term2string(XT, XS) &
     .my_name(MyName);
     .term2string(MyName, MyNameString);
     .send(Name, tell, i_can_rescue(Name, Dist, MyNameString));
-    .wait(1200);
+    .wait(1500);
     if (not rescuing(Name)) {
         .print("will not rescue ", Name);
     }
@@ -66,8 +94,9 @@ is_rescuer(XT) :- .all_names(Names) &.member(XT, Names) & .term2string(XT, XS) &
     .print(Name, " accepted rescue while I was rescuing ", Turtle);
     -accept_rescue(Name, X,Y,Z)[source(_)].
 
-@i_can_rescue_plan[atomic]
+@i_can_rescue_plan[priority(900)]
 +i_can_rescue(Name, Dist, Id) : asking_for_rescue <-
+    .print("RR ", Name, " ", Id);
     ?rescue_responses(CurResp);
     -rescue_responses(_);
     +rescue_responses([t(Dist, Id) | CurResp]);
@@ -76,13 +105,31 @@ is_rescuer(XT) :- .all_names(Names) &.member(XT, Names) & .term2string(XT, XS) &
 +i_can_rescue(Name, Dist, Id) : not asking_for_rescue <-
     -i_can_rescue(Name, Dist, Id)[source(_)].
 
+
++!pickupFuel: true <- 
+    inv("inv.checkSlot(1)");
+    execs("turtle.select(1)");
+    ?slot(1, Item, Count);
+    !finishPickupFuel(Item, Count).
+    
++!finishPickupFuel(Item, Count) : not can_pickup_more_fuel(Item)  <-
+    execs("turtle.dropUp()");
+    !pickupFuel.
+    
++!finishPickupFuel(Item, Count) : pickup_amount(PA) & Count < PA <-
+    !moveTo(fuel);
+    .concat("turtle.suck(",PA-Count,")",Fcn);
+    execs(Fcn).
+    
++!finishPickupFuel(Item, Count) : true <- true.
+
 +!go_rescue(Name, X,Y,Z) : true <-
     .print("Rescuing ", Name);
-    .wait(3000);
-    // .print("Rescue done");
+    !moveToFace(X,Y,Z);
+    execs("turtle.drop()");
     // send message to Name
-    // go next_to block XYZ
-    // transfer resources
-    // get fuel
+    .send(Name, tell, fuel_transfered);
+    !pickupFuel;
+    !goIdle;
     -rescuing(Name).
 

@@ -1,16 +1,19 @@
 /* Plans for staying connected to MC turtles */
 
-+!connect : not connected <-
-    connect;
++!connect : true <- !connect("0").
+
++!connect(Channel) : not connected <-
+    connect(Channel);
     .wait(10);
-    ?pc(Pc);
-    .print("Connected to ", Pc);
     locate.
 
--!connect : not connected <-
+-!connect(Channel) : not connected <-
     .print("Failed to connect, will try again 5 seconds.");
     .wait(5000);
-    !connect.
+    !connect(Channel).
+    
+-!connect(Channel) : true <-
+    .print("Failed to connect while being connected").
 
 +connected : true <-
     .wait(50);

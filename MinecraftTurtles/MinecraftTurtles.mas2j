@@ -11,7 +11,11 @@ Authors:
 MAS minecraft_turtles {
     environment: env.MinecraftEnv
 
+    // agents:
+        // bob;
+        // alice;
+
     agents:
-        bob;
-        alice;
+        rescuer;
+        damsel;
 }

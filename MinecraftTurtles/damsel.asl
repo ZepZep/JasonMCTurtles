@@ -1,17 +1,18 @@
 { include("rescue.asl") }
+{ include("connection.asl") }
+{ include("movement.asl") }
+{ include("inventory.asl") }
+{ include("locations2.asl") }
 
-at(100, 100, 100).
+
+minimum_fuel_level(0).
 
 !start.
-// !test_best_response.
-
-
-+!test_best_response: true <-
-    ?best_response(Dist, Id, [t(30, "A"), t(10, "B"), t(2, "C")]);
-    .print("best_response: ", Dist, ", ", Id).
-
+!keep_fueled.
 
 +!start : true <-
-    .random(WaitTime);
-    .wait(1000 + WaitTime*2000);
-    !ask_for_rescue.
+    !connect("2");
+    !explore(redstone, craftingTable4).
+    
+-!start : true <-
+    .print("Start failed").

@@ -1,6 +1,7 @@
 os.loadAPI("json.lua")
 os.loadAPI("tst.lua")
 os.loadAPI("inv.lua")
+os.loadAPI("jconfig.lua")
 
 
 local port = "8887"
@@ -24,7 +25,7 @@ function loop(ws)
 --     print(msg)
     if not ok or not msg then
         if msg == "Terminated" then
-            error(msg)
+            error("Terminated")
         end
         return false, "Receive failed: " .. tostring(msg)
     end
@@ -52,7 +53,11 @@ function connect()
     local counter = 1
     print()
     while true do
-        local ws, err = http.websocket(addr)
+        local myheaders = {
+            turtleid=tostring(os.getComputerID()),
+            turtlechannel=tostring(jconfig.channel)
+        }
+        local ws, err = http.websocket(addr, myheaders)
         if err then
             term_back()
             print(" " .. err .. " " .. tostring(counter))
@@ -69,17 +74,28 @@ function hello()
     term.clear()
     term.setCursorPos(1,1)
     print_color("Jason turtle agent v.0.42", colors.orange)
+    print(" turtle: "..os.getComputerID().." channel: "..jconfig.channel)
+end
+
+function checkFuel()
+    if (turtle.getFuelLevel() == 0) then
+        print("   Out of fuel, trying to refuel")
+        turtle.select(16)
+        turtle.refuel()
+    end
 end
 
 function calibrate()
     print(" Getting location with GPS")
     if not tst.calibrate() then
-        error("Failed to calibrate")
+        print_color("   Failed to calibrate", colors.red)
+    else
+        print("   Located at " .. tst.fullLocate())
     end
-    print("   Located at " .. tst.fullLocate())
 end
 
 hello()
+checkFuel()
 calibrate()
 
 while true do
