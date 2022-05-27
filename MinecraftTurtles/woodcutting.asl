@@ -47,10 +47,30 @@ nothingInFront :- front_block(Block) & no_block(Block).
     !woodCutting.
 
 +!plantTree: front_block(Block) & no_block(Block) <-
-    //check if current selected slot is a sapling
+    //look for a slot with a sapling
+	inv("inv.checkSlots()");
+	?slot(SlotNum, "minecraft:spruce_sapling", Count);
     execs("turtle.select(2)");
     execs("turtle.place()");
     execs("turtle.select(1)").
-
+	
++!collectAround: true <-
+	for( .range(I,1,4)){
+		execs("turtle.suck()");
+		execs("turtle.turnRight()");
+	}.
+	
++!saplingSearch(X,Y,Z): true <-
+	//receive message that tree has been planted in (X, Y, Z)
+	!moveTo(X-1, Y, Z-1, east);
+	for( .range(I,1,4)){
+		!collectAround;
+		execs("turtle.forward()");
+		!collectAround;
+		execs("turtle.forward()");
+		execs("turtle.turnLeft()");
+	}
+	!collectAround.
+	
 
 
