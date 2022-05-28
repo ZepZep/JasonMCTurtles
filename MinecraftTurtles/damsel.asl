@@ -1,8 +1,8 @@
-{ include("rescue.asl") }
-{ include("connection.asl") }
-{ include("movement.asl") }
-{ include("inventory.asl") }
-{ include("locations2.asl") }
+{ include("aslapi/rescue.asl") }
+{ include("aslapi/connection.asl") }
+{ include("aslapi/movement.asl") }
+{ include("aslapi/inventory.asl") }
+{ include("aslapi/locations2.asl") }
 
 
 minimum_fuel_level(0).

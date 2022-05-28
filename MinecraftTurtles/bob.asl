@@ -1,8 +1,9 @@
 /* Agent bob */
 
-{ include("connection.asl") }
-{ include("movement.asl") }
-{ include("inventory.asl") }
+{ include("aslapi/connection.asl") }
+{ include("aslapi/movement.asl") }
+{ include("aslapi/inventory.asl") }
+{ include("aslapi/woodcutting.asl") }
 
 /* Initial goal */
 // !start.
@@ -26,7 +27,7 @@ recipe(turtle,[iron,    iron,        iron,
                iron,    chest,       iron]).
 
 queueRecipe([], [], Q) :- true.
-queueRecipe([Item1 | Items], [Slot|Slots], Q) :- .queue.add(Q, t(Item, Slot)) & queueRecipe(Items, Slots, Q).
+queueRecipe([Item | Items], [Slot|Slots], Q) :- .queue.add(Q, t(Item, Slot)) & queueRecipe(Items, Slots, Q).
 
 +!tryQueue : true <-
     ?recipe(turtle, Items);

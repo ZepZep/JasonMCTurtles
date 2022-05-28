@@ -1,12 +1,12 @@
 /* Agent alice */
 
-{ include("connection.asl") }
-{ include("movement.asl") }
-{ include("inventory.asl") }
-{ include("mining.asl") }
-{ include("smelting.asl") }
-{ include("woodcutting.asl") }
-{ include("crafting.asl") }
+{ include("aslapi/connection.asl") }
+{ include("aslapi/movement.asl") }
+{ include("aslapi/inventory.asl") }
+{ include("aslapi/mining.asl") }
+{ include("aslapi/smelting.asl") }
+{ include("aslapi/woodcutting.asl") }
+{ include("aslapi/crafting.asl") }
 
 /* Initial goal */
 !start.
