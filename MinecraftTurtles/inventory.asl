@@ -27,7 +27,7 @@
         .print(FuelLevel, " fuel is plenty, I don't have to worry.");
     }.
 
-@getFuelLevel[priority(100)]
+@getFuelLevel[atomic]
 +!observe_fuel_level : true <-
     execs_literal("turtle.getFuelLevel()");
     ?execs_out(FuelLevel);
@@ -46,30 +46,36 @@
 +!check_fuel_level : refueling <-
     !observe_fuel_level;
     ?fuel_amount(FuelLevel);
-    .print("Checked fuel during refueling: ", FuelLevel).
+    if (FuelLevel == 0 & not refueling_ask) {
+        .print("Ran out of fuel during attempting to refuel.");
+        -refueling;
+        !check_fuel_level;
+    } else {
+        .print("Checked fuel during refueling: ", FuelLevel);
+    }.
 
 +!check_fuel_level : minimum_fuel_level(Minimum) <-
     !observe_fuel_level;
     ?fuel_amount(FuelLevel);
     .print("Checked fuel: ", FuelLevel);
-    if (FuelLevel <= Minimum) {
-        .print("Fuel level low, going to refuel!");
+    if (FuelLevel <= Minimum & not rescuing(Turtle)) {
+        // .print("Fuel level low, going to refuel!");
         +refueling;
-        !list_intentions("PREINT");
+        .intention(ICur,_,_,current);
+        if (.intend(start, IStart) & ICur \== IStart) {
+            // .print("Suspending start");
+            .suspend(start);
+        }
         !refuel;
-        !list_intentions("POSTINT");
         -refueling;
-        // FIXME un-suspend other intentions
     }.
 
 +!list_intentions(Prefix) : true <-
-    // .findall(X, .intend(X), L);
-    .findall(X, .intention(_, _, X), L);
+    .findall(X, .intend(X), L);
     for (.member(X, L)) {
         .print(Prefix, X);
     }.
-    
-    
+
 @refuelAtom[priority(90)]
 +!refuel : fuel_amount(Fuel) & Fuel > 0 <-
     .print("Moving to refuel.");
@@ -77,13 +83,19 @@
     !moveTo(fuel);
     execs("turtle.select(16)");
     execs("turtle.suck(4)");
-    execs("turtle.refuel()").
+    execs("turtle.refuel()");
+    !goIdle;
+    .resume(start).
     
 +!refuel : fuel_amount(Fuel) & Fuel == 0 <-
     .print("Asking to refuel.");
     !observe_fuel_level;
-    !ask_for_rescue.
+    +refueling_ask;
+    !ask_for_rescue;
+    -refueling_ask;
+    .resume(start).
 
 -!refuel : true <-
     !observe_fuel_level;
     !refuel.
+

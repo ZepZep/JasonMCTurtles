@@ -13,6 +13,4 @@ minimum_fuel_level(0).
 +!start : true <-
     !connect("2");
     !explore(redstone, craftingTable4).
-    
--!start : true <-
-    .print("Start failed").
+

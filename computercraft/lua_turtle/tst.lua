@@ -44,7 +44,7 @@ function calibrate()
     turtle.turnRight()
     i = i+1
   end
-  return false
+  return false, "Was not able to callibrate"
 end
 
 function locate()

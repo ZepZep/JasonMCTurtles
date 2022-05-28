@@ -22,7 +22,7 @@ can_pickup_more_fuel("empty").
 
 +!ask_for_rescue : at(X,Y,Z) & .my_name(Name) & rescuers(Rescuers) <-
     .print("Help!");
-    -rescue_responses(X);
+    -rescue_responses(_);
     +rescue_responses([]);
     +asking_for_rescue;
     .send(Rescuers, tell, rescue_request(Name, X, Y, Z));
@@ -61,13 +61,14 @@ can_pickup_more_fuel("empty").
     !invDebug.
  
 +!wait_for_fuel : true <-
-    .print("Awaiting fuel");
+    // .print("Awaiting fuel");
     .wait(1000);
     !wait_for_fuel.
 
 @rescue_received_atom[priority(1000)]
 +rescue_request(Name, X, Y, Z) :
     role(rescuer) & not rescuing(Turtle) &
+    not refueling &
     not awaiting_response & at(MX, MY, MZ)
   <-
     +awaiting_response;
@@ -96,7 +97,7 @@ can_pickup_more_fuel("empty").
 
 @i_can_rescue_plan[priority(900)]
 +i_can_rescue(Name, Dist, Id) : asking_for_rescue <-
-    .print("RR ", Name, " ", Id);
+    // .print("RR ", Name, " ", Id);
     ?rescue_responses(CurResp);
     -rescue_responses(_);
     +rescue_responses([t(Dist, Id) | CurResp]);
@@ -123,9 +124,14 @@ can_pickup_more_fuel("empty").
     
 +!finishPickupFuel(Item, Count) : true <- true.
 
++!go_rescue(Name, X,Y,Z) : refueling <-
+    .wait(1000);
+    !go_rescue(Name, X,Y,Z).
+
 +!go_rescue(Name, X,Y,Z) : true <-
     .print("Rescuing ", Name);
     !moveToFace(X,Y,Z);
+    execs("turtle.select(1)");
     execs("turtle.drop()");
     // send message to Name
     .send(Name, tell, fuel_transfered);

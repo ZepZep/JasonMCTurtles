@@ -2,6 +2,7 @@ package env;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.lang.Thread;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -36,7 +37,11 @@ public class SimpleServer extends WebSocketServer {
 
     public boolean acceptConnection(String ag, String pc, BlockingQueue<JSONObject> queue) {
         pcQueues.put(pc, queue);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {}
         pc2conn.get(pc).send("Connected as " + ag + ".");
+        
         return true;
     }
 

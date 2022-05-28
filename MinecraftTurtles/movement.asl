@@ -12,18 +12,22 @@ faceDelta(north, delta(0, -1)).
 
 facingW(Dir) :- faceMap(Dir, X) & facing(X).
 
-// poi(chest, -135, 65, 145, west).
-// poi(furnace, -129, 67, 149, east).
-
-// poiFuel(fuel1, ).
-// poiFuel(fuel2, ).
-// poiFuel(fuel3, ).
-
 at(X, Y, Z, Dir) :- at(X, Y, Z) & facingW(Dir).
 
 facingBlock(X,Y,Z) :- at(CX, Y, CZ, Dir) & atFacingBlock(X, Z, CX, CZ, Dir).
 atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     X = CX + DX & Z = CZ+DZ.
+
++!tryGoalErr(G, Suc, Err) : true <-
+    !G;
+    Suc = true.
+    
+-!tryGoalErr(G, false, Err) : true <-
+    if (execs_err(CurErr)) {
+        Err = CurErr;
+    } else {
+        Err = "NO_ERR";
+    }.
 
 +!moveTo(POI) : poi(POI, X, Y, Z, Dir) <-
     !moveTo(X, Y, Z, Dir).
@@ -39,8 +43,12 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     ?faceMap(Dir, DirNum);
     .concat("tst.moveTowards(",X,",",Y,",",Z,",",DirNum,")",Fcn);
     // .print(Fcn);
-    !execsLocate(Fcn);
-    !moveTo(X, Y, Z, Dir).
+    !tryGoalErr(move_check(Fcn), Suc, Err);
+    if (Suc) {
+        !moveTo(X, Y, Z, Dir);
+    } else {
+        !moveToError(X, Y, Z, Dir, Err);
+    }.
 
 +!moveToTimeout(X, Y, Z, Dir, Trials, true) : at(X, Y, Z, Dir) <-
     true.
@@ -48,55 +56,74 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
 +!moveToTimeout(X, Y, Z, Dir, Trials, Suc) : not at(X, Y, Z, Dir) <-
     ?faceMap(Dir, DirNum);
     .concat("tst.moveTowards(",X,",",Y,",",Z,",",DirNum,")",Fcn);
-    !execsLocate(Fcn);
-    !moveToTimeout(X, Y, Z, Dir, Trials, Suc).
+    !tryGoalErr(move_check(Fcn), ESuc, Err);
+    if (ESuc) {
+        !moveToTimeout(X, Y, Z, Dir, Trials, Suc);
+    } else {
+        !moveToTimeoutError(X, Y, Z, Dir, Trials, Suc, Err);
+    }.
+    
 
-@execLocateAtom[priority(80)]
+@execLocateAtom[atomic]
 +!execsLocate(Fcn) : true <-
     execs(Fcn);
     locate.
     
 +!tryCalibrate : true <-
-    execs("tst.calibrate()").
+    !tryGoalErr(calibrate, Suc, Err);
+    if (not Suc) {
+        .wait(5000);
+        !tryCalibrate;
+    }.
 
--!tryCalibrate : true <- 
-    .wait(5000);
-    !tryCallibrate.
-
--!moveTo(X, Y, Z, Dir) : execs_err(Err) & Err == "Movement obstructed" <-
++!calibrate : true <-
+    execs("tst.calibrate()");
+    .print("callibration succesfull").
+    
++!moveToError(X, Y, Z, Dir, "Movement obstructed") : true <-
     execs("tst.randomMove()");
     !moveTo(X, Y, Z, Dir).
     
--!moveTo(X, Y, Z, Dir) : execs_err(Err) & Err == "Not calibrated" <-
-    .print("Failed moveTo with: ", Err, " Trying to callibrate");
++!moveToError(X, Y, Z, Dir, "Not calibrated") : true <-
+    .print("Failed moveTo with: Not calibrated. Trying to callibrate");
     !tryCalibrate;
     !moveTo(X, Y, Z, Dir).
     
--!moveTo(X, Y, Z, Dir) : execs_err(Err) & Err == "Out of fuel" <-
++!moveToError(X, Y, Z, Dir, "Out of fuel") : true <-
     !check_fuel_level;
     !moveTo(X, Y, Z, Dir).
-    
--!moveTo(X, Y, Z, Dir) : execs_err(Err) <-
+
++!moveToError(X, Y, Z, Dir, "NO_ERR") : true <-
+    .print("Failed moveTo without execs_err");
+    !moveTo(X, Y, Z, Dir).
+
++!moveToError(X, Y, Z, Dir, Err) : true <-
     .print("Failed moveTo with: ", Err);
-    .drop_intention.
- 
- 
--!moveToTimeout(X, Y, Z, Dir, Trials, Suc) : Trials > 0  & execs_err(Err) & Err == "Movement obstructed" <-
+    .fail.
+
++!moveToTimeoutError(X, Y, Z, Dir, Trials, Suc, "Movement obstructed") : Trials > 0  <-
     execs("tst.randomMove()");
     !moveToTimeout(X, Y, Z, Dir, Trials-1, Suc).
 
--!moveToTimeout(X, Y, Z, Dir, Trials, false) : execs_err(Err) & Err == "Movement obstructed" <-
++!moveToTimeoutError(X, Y, Z, Dir, Trials, false, "Movement obstructed") : true  <-
     .print("Failed moveToTimeout: ran out of trials").
     
--!moveToTimeout(X, Y, Z, Dir, Trials, Suc) : execs_err(Err) & Err == "Not calibrated" <-
++!moveToTimeoutError(X, Y, Z, Dir, Trials, Suc, Err == "Not calibrated") : true <-
     .print("Failed moveToTimeout with: ", Err, " Trying to callibrate");
     !tryCalibrate;
     !moveToTimeout(X, Y, Z, Dir, Trials, Suc).
+    
++!moveToTimeoutError(X, Y, Z, Dir, Trials, Suc, "Out of fuel") : true <-
+    !check_fuel_level;
+    !moveToTimeout(X, Y, Z, Dir, Trials, Suc).
 
--!moveToTimeout(X, Y, Z, Dir, Trials) : execs_err(Err) <-
++!moveToTimeoutError(X, Y, Z, Dir, Trials, Suc,  "NO_ERR") : true <-
+    .print("Failed moveToTimeout without execs_err");
+    !moveToTimeout(X, Y, Z, Dir, Trials, Suc).
+
++!moveToTimeoutError(X, Y, Z, Dir, Trials, Suc, Err) : true <-
     .print("Failed moveToTimeout with: ", Err);
     .drop_intention.
-
 
 +!moveToFace(POI) : poi(POI, X, Y, Z, Dir) <-
     !moveToFace(X, Y, Z).
@@ -139,7 +166,6 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     .wait(1000);
     !exploreFacing.
 
-
 @lookAroundAtom[atomic]
 +!lookAround : true <-
     execs("tst.inspect()");
@@ -152,7 +178,7 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     ?execs_out(BelowBlock);
     -+below_block(BelowBlock).
 
-@move_checkAtom[[priority(80)]]
+@move_checkAtom[atomic]
 +!move_check(Fcn): true <-
     execs(Fcn);
     !check_front;
@@ -165,8 +191,6 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     ?execs_out(FrontBlock);
     -+front_block(FrontBlock).
 
--!check_front: true <- .print("front").
-
 +!check_above: true <-
     execs("tst.inspectUp()");
     ?execs_out(AboveBlock);
@@ -176,13 +200,11 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     execs("tst.inspectDown()");
     ?execs_out(BelowBlock);
     -+below_block(BelowBlock).
-    
 
 randomNearby(CX,CY,CZ,Radius,X,Y,Z) :-
     .random(DX) & X = math.round(CX + (DX-0.5) * 2 * Radius) &  
     .random(DY) & Y = math.round(CY + (DY-0.5) * 2 * Radius) &  
     .random(DZ) & Z = math.round(CZ + (DZ-0.5) * 2 * Radius).
-
 
 +!goIdle : poi(idle, CX,CY,CZ,Dir) <-
     ?randomNearby(CX,CY,CZ,3,X,Y,Z);

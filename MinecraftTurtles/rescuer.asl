@@ -22,9 +22,7 @@ pickup_amount(1).
     .print("Going Idle");
     !goIdle;
     .print("Able to rescue.");
-    for (.intend(Intention)) {
-        .print("INT: ", Intention);
-    }
-    -rescuing(X).
+    -rescuing(init);
+    .suspend(start).
 
 

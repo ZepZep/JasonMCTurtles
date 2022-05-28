@@ -25,6 +25,7 @@ function loop(ws)
 --     print(msg)
     if not ok or not msg then
         if msg == "Terminated" then
+            os.setComputerLabel("[terminated]")
             error("Terminated")
         end
         return false, "Receive failed: " .. tostring(msg)
@@ -33,7 +34,16 @@ function loop(ws)
     if obj ~= nil then
         exec(obj, ws)
     else
-        print(" unk: " .. msg)
+        if string.sub(msg, 0, 9) == "Connected" then
+            local label = string.sub(msg, 14)
+            os.setComputerLabel(label)
+            print("  "..msg)
+        elseif msg == "Acknowledged." then
+            os.setComputerLabel("[ack]")
+            print("  "..msg)
+        else
+            print(" unk: " .. msg)
+        end
     end
     return true
 end
@@ -107,5 +117,6 @@ while true do
     end
     print_color(err, colors.red)
     ws.close()
+    os.setComputerLabel("[...]")
     print(" Reconnecting")
 end

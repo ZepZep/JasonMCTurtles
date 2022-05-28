@@ -59,6 +59,7 @@ public class MinecraftEnv extends Environment {
             }
             if (obj.has("err")) {
                 addPercept(ag, Literal.parseLiteral("execs_err(\"" + obj.get("err") + "\")"));
+                // System.out.println("  XXX "+ obj.get("err"));
             }
             return !obj.has("err");
         }
@@ -70,12 +71,12 @@ public class MinecraftEnv extends Environment {
             removePerceptsByUnif(ag, Literal.parseLiteral("execs_err(X)"));
             if (obj.has("out")) {
                 addPercept(ag, Literal.parseLiteral("execs_out(" + obj.get("out") + ")"));
-                System.out.println("  XXX "+ obj.get("finished"));
-                System.out.println("  XXX "+ obj.get("out"));
+                // System.out.println("  XXX "+ obj.get("finished"));
+                // System.out.println("  XXX "+ obj.get("out"));
             }
             if (obj.has("err")) {
                 addPercept(ag, Literal.parseLiteral("execs_err(\"" + obj.get("err") + "\")"));
-                System.out.println("  XXX "+ obj.get("err"));
+                // System.out.println("  XXX "+ obj.get("err"));
             }
             return !obj.has("err");
         }
@@ -264,7 +265,7 @@ public class MinecraftEnv extends Environment {
             
         }
         if(!retval) {
-            System.out.println("XXX [" + ag + "] action " + act + " FAILED.");
+            // System.out.println("XXX [" + ag + "] action " + act + " FAILED.");
         }
 
         informAgsEnvironmentChanged();
