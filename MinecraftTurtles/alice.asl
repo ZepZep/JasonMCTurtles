@@ -13,15 +13,9 @@
 
 /* Plans */
 +!start : true <-
-	.set.create(Q);                // Q = []
-	.set.add(Q,a);                 // Q = [a]
-	.set.add(Q,b);
-	.set.add(Q,c);
-	.set.add(Q,a); 
-	.print(Q);
     !connect;
 	//execs("inv.idSlot(1)");
-	!craft(turtle, 1).
+	//!craft(turtle, 1).
 	//?execs_out(Num);
 	//.print(Num).
 	//!woodCutting;
@@ -29,8 +23,10 @@
 	//!invDebug.
 	//inv("inv.checkSlots()").
 	//!smeltGlass;
-	
-	//!invDebug;
-	//!woodCutting;
+	!moveForward.
+	//!saplingSearch(-20,4,-40).
+	//!moveTo(tree);
+	//!plantTree.
+	//!woodCutting.
     //!coalMining.
 

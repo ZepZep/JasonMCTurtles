@@ -11,4 +11,6 @@ poi(iron_ore, 1, 4, -12, east).
 poi(log, 1, 4, -10, east).
 poi(iron, 1, 4, -8, east).
 poi(redstone, 1, 4, -6, east).
+
 poi(craftingTable, -4,4,-16, west).
+
