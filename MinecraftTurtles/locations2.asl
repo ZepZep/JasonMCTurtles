@@ -30,6 +30,27 @@ poi(furnace3, 253, 74, -247, north).
 poi(furnace4, 251, 74, -247, north).
 poi(furnace5, 249, 74, -247, north).
 
-
 poi(idle,           256, 77, -238, east).
 
+mine_loc(gold_ore, 249, 60, -275, south).
+mine_loc(gold_ore, 248, 60, -275, south).
+mine_loc(gold_ore, 248, 61, -275, west).
+mine_loc(gold_ore, 249, 59, -276, west).
+mine_loc(gold_ore, 247, 60, -276, west).
+mine_loc(gold_ore, 247, 61, -276, west).
+mine_loc(gold_ore, 247, 60, -278, west).
+
+mine_loc(redstone, 247, 60, -283, west).
+mine_loc(redstone, 247, 61, -284, west).
+mine_loc(redstone, 247, 60, -283, north).
+mine_loc(redstone, 248, 59, -282, north).
+mine_loc(redstone, 249, 60, -284, north).
+
+mine_loc(sand, 257, 64, -276, east).
+mine_loc(sand, 257, 65, -276, east).
+mine_loc(sand, 257, 66, -276, east).
+mine_loc(sand, 257, 66, -277, east).
+mine_loc(sand, 257, 66, -275, east).
+
+// Y, Spacing, XMin, ZMin, XMax, ZMax
+tree_farm_setting(75, 3, 260, -228, 272, -216).
