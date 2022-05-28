@@ -204,6 +204,9 @@ public class MinecraftEnv extends Environment {
             pcLocks.get(pc).unlock();
             return false;
         }
+        // if (pcLocks.get(pc).isLocked()) {
+            // pcLocks.get(pc).unlock();
+        // }
 
         JSONObject obj;
         try {
@@ -214,7 +217,9 @@ public class MinecraftEnv extends Environment {
         }
 
         retval = effects.call(ag, obj);
-        pcLocks.get(pc).unlock();
+        if (pcLocks.get(pc).isLocked()) {
+            pcLocks.get(pc).unlock();
+        }
         return retval;
     }
 
@@ -251,7 +256,17 @@ public class MinecraftEnv extends Environment {
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {}
-        } // connect
+            retval = true;
+        }
+        // unlock
+        else if (functor.equals("unlock")) {
+            String pc = ag2pc.get(ag);
+            if (pcLocks.get(pc).isLocked()) {
+                pcLocks.get(pc).unlock();
+            }
+            retval = true;
+        }
+        // connect
         else if (functor.equals("connect")) {
             int arity = act.getArity();
             if (arity == 0) {

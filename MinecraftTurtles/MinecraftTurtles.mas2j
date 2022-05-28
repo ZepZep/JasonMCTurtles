@@ -19,5 +19,7 @@ MAS minecraft_turtles {
         // bob agentClass agent.PriorityAgent;
         // bob;
         rescuer #3;
-        damsel;
+        lumberjack;
+        forester;
+        // damsel;
 }

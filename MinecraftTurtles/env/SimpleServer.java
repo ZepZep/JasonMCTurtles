@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 
@@ -20,16 +21,19 @@ public class SimpleServer extends WebSocketServer {
     HashMap<String, LinkedBlockingQueue<String>> newPcQueues;
     HashMap<String, BlockingQueue<JSONObject>> pcQueues;
     HashMap<String, WebSocket> pc2conn;
+    HashMap<String, ReentrantLock> pcLocks;
 
     public SimpleServer(InetSocketAddress address, HashMap<String, LinkedBlockingQueue<String>> _newPcQueues) {
         super(address);
         newPcQueues = _newPcQueues;
         pcQueues = new HashMap<>();
         pc2conn = new HashMap<String, WebSocket>();
+        pcLocks = new HashMap<String, ReentrantLock>();
     }
 
 
     public boolean exec(String pc, JSONObject json) {
+        // pcLocks.get(pc).lock();
         WebSocket conn = pc2conn.get(pc);
         conn.send(json.toString());
         return true;
@@ -37,6 +41,7 @@ public class SimpleServer extends WebSocketServer {
 
     public boolean acceptConnection(String ag, String pc, BlockingQueue<JSONObject> queue) {
         pcQueues.put(pc, queue);
+        pcLocks.put(pc, new ReentrantLock());
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {}
@@ -78,6 +83,9 @@ public class SimpleServer extends WebSocketServer {
         try {
             pcQueues.get(pc).put(obj);
         } catch (InterruptedException e) { return; }
+        // if (pcLocks.get(pc).isLocked()) {
+            // pcLocks.get(pc).unlock();
+        // }
     }
 
     @Override

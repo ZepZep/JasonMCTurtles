@@ -15,8 +15,7 @@
 // !testIntentionPriority1.
 // !testIntentionPriority2.
 // !failN(3).
-!tryQueue.
-
+// !tryQueue.
 
 // !testTryGoal.
 

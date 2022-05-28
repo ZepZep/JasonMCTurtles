@@ -54,3 +54,4 @@ mine_loc(sand, 257, 66, -275, east).
 
 // Y, Spacing, XMin, ZMin, XMax, ZMax
 tree_farm_setting(75, 3, 260, -228, 272, -216).
+// tree_farm_setting(75, 3, 260, -228, 263, -225).

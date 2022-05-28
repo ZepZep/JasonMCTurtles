@@ -50,12 +50,14 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
         !moveToError(X, Y, Z, Dir, Err);
     }.
 
-
-+!moveForward: true <-
-    ?facingW(Dir);
-    ?faceDelta(Dir, delta(DX, DZ));
-    ?at(X, Y, Z, Dir);
-    !moveTo(X+DX, Y, Z+DZ, Dir).
++!moveForward(Suc): at(X, Y, Z, Dir) & faceDelta(Dir, delta(DX, DZ)) <-
+    !moveToTimeout(X+DX, Y, Z+DZ, Dir, 1, Suc).
+    
++!moveUp(Suc): at(X, Y, Z, Dir) <-
+    !moveToTimeout(X, Y+1, Z, Dir, 1, Suc).
+    
++!moveDown(Suc): at(X, Y, Z, Dir) <-
+    !moveToTimeout(X, Y-1, Z, Dir, 1, Suc).
 
 
 +!moveToTimeout(X, Y, Z, Dir, Trials, true) : at(X, Y, Z, Dir) <-
@@ -101,6 +103,10 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     !check_fuel_level;
     !moveTo(X, Y, Z, Dir).
 
++!moveToError(X, Y, Z, Dir, "already here") : true <-
+    .print("Failed moveTo: already here");
+    locate.
+    
 +!moveToError(X, Y, Z, Dir, "NO_ERR") : true <-
     .print("Failed moveTo without execs_err");
     !moveTo(X, Y, Z, Dir).
@@ -125,13 +131,17 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     !check_fuel_level;
     !moveToTimeout(X, Y, Z, Dir, Trials, Suc).
 
++!moveToTimeoutError(X, Y, Z, Dir, Trials, Suc,  "already here") : true <-
+    .print("Failed moveToTimeout with: already here");
+    locate.
+    
 +!moveToTimeoutError(X, Y, Z, Dir, Trials, Suc,  "NO_ERR") : true <-
     .print("Failed moveToTimeout without execs_err");
     !moveToTimeout(X, Y, Z, Dir, Trials, Suc).
 
 +!moveToTimeoutError(X, Y, Z, Dir, Trials, Suc, Err) : true <-
     .print("Failed moveToTimeout with: ", Err);
-    .drop_intention.
+    .fail.
 
 +!moveToFace(POI) : poi(POI, X, Y, Z, Dir) <-
     !moveToFace(X, Y, Z).

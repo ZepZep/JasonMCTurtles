@@ -190,8 +190,18 @@ function moveTowards(fx, fy, fz, fdir)
     return false, "Not calibrated"
   end
 
+  local dy = fy - y
+
+  if dy ~= 0 and math.random(2) == 1 then
+    if dy < 0 then
+      return down()
+    else
+      return up()
+    end
+  end
+
   if x == fx and z == fz then
-    local dy = fy - y
+
     if dy < 0 then
       return down()
     elseif dy > 0 then

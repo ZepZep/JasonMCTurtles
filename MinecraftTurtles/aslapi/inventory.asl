@@ -64,6 +64,7 @@
         .intention(ICur,_,_,current);
         if (.intend(start, IStart) & ICur \== IStart) {
             // .print("Suspending start");
+            unlock;
             .suspend(start);
         }
         !refuel;
