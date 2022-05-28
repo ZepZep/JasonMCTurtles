@@ -3,17 +3,10 @@
 { include("movement.asl") }
 { include("inventory.asl") }
 
-//coal("minecraft:coal_ore").
-//stick("minecraft:stick").
-
 +!getItem(Amount, Pos): true <-
     !moveTo(Pos);
     .concat("turtle.suck(",Amount,")", SuckAmount);
     execs(SuckAmount).
-
-    //execs("inv.idSlot(1)");
-    //?execs_out(Num);
-    //.print(Num).
 
 +!craft(Item, Amount): recipe(Item, Recipe) <-
     .map.create(R);
@@ -36,6 +29,7 @@
     .concat("turtle.drop(",Amount,")", Store);
     execs(Store).
 
+// OLD PLAN
 // we start the plan if we have the recipe for Item
 +!craft(Item, Amount): recipe(Item, Recipe) <-
     //create a java map (~dictionary)

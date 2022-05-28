@@ -35,8 +35,14 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     ?faceMap(Dir, DirNum);
     .concat("tst.moveTowards(",X,",",Y,",",Z,",",DirNum,")",Fcn);
     // .print(Fcn);
-    !execsLocate(Fcn);
+    !move_check(Fcn);	
     !moveTo(X, Y, Z, Dir).
+	
++!moveForward: true <-
+	?facingW(Dir);
+	?faceDelta(Dir, delta(DX, DZ));
+	?at(X, Y, Z, Dir);
+	!moveTo(X+DX, Y, Z+DZ, Dir).
 
 +!moveToTimeout(X, Y, Z, Dir, Trials, true) : at(X, Y, Z, Dir) <-
     true.
@@ -94,6 +100,7 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     .print("I am at the furnace.");
     .wait(3000);
     !explore.
+
 
 +!exploreFacing : true <-
     !moveToFace(chest);
