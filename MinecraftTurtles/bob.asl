@@ -4,6 +4,8 @@
 { include("aslapi/movement.asl") }
 { include("aslapi/inventory.asl") }
 { include("aslapi/woodcutting.asl") }
+{ include("aslapi/execution.asl") }
+
 
 /* Initial goal */
 // !start.
@@ -18,6 +20,21 @@
 // !tryQueue.
 
 // !testTryGoal.
+
+!testExecs.
+
++!testExecs : true <-
+    connect;
+    !!waitdo(500, execs("tst.forward()"));
+    !!waitdo(520, execs("tst.turnLeft()"));
+    !!waitdo(530, execs("tst.back()"));
+    !!waitdo(540, execs("tst.turnRight()")).
+
++!waitdo(W, A): true <-
+    .wait(W);
+    .print("started ", A, " at ", W);
+    !execs(A, Suc, Out, Err);
+    .print("ended ", A, " with: ", Suc, " | ", Out, " | ", Err).
 
 craftingSlots([1,2,3,5,6,7,9,10,11]).
 

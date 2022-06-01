@@ -1,4 +1,5 @@
 // Turtle movement plans and reasonong
+{ include("execution.asl") }
 
 faceMap(east, 0).
 faceMap(south, 1).
@@ -43,7 +44,7 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     ?faceMap(Dir, DirNum);
     .concat("tst.moveTowards(",X,",",Y,",",Z,",",DirNum,")",Fcn);
     // .print(Fcn);
-    !tryGoalErr(move_check(Fcn), Suc, Err);
+    !moveCheck(Fcn, Suc, Out, Err);
     if (Suc) {
         !moveTo(X, Y, Z, Dir);
     } else {
@@ -66,7 +67,7 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
 +!moveToTimeout(X, Y, Z, Dir, Trials, Suc) : not at(X, Y, Z, Dir) <-
     ?faceMap(Dir, DirNum);
     .concat("tst.moveTowards(",X,",",Y,",",Z,",",DirNum,")",Fcn);
-    !tryGoalErr(move_check(Fcn), ESuc, Err);
+    !moveCheck(Fcn, ESuc, Out, Err);
     if (ESuc) {
         !moveToTimeout(X, Y, Z, Dir, Trials, Suc);
     } else {
@@ -185,25 +186,22 @@ atFacingBlock(X, Z, CX, CZ, Dir) :- faceDelta(Dir, delta(DX, DZ)) &
     .wait(1000);
     !exploreFacing.
 
-@lookAroundAtom[atomic]
+
 +!lookAround : true <-
-    execs("tst.inspect()");
-    ?execs_out(FrontBlock);
+    !execs(execs("tst.inspect()"), true, FrontBlock, _);
     -+front_block(FrontBlock);
-    execs("tst.inspectUp()");
-    ?execs_out(AboveBlock);
+    !execs(execs("tst.inspectUp()"), true, AboveBlock, _);
     -+above_block(AboveBlock);
-    execs("tst.inspectDown()");
-    ?execs_out(BelowBlock);
+    !execs(execs("tst.inspectDown()"), true, BelowBlock, _);
     -+below_block(BelowBlock).
 
-@move_checkAtom[atomic]
-+!move_check(Fcn): true <-
-    execs(Fcn);
-    !check_front;
-    !check_above;
-    !check_below;
-    locate.
++!moveCheck(Fcn, Suc, Out, Err): true <-
+    !execs(execs(Fcn), Suc, Out, Err);
+    if (Suc) {
+        locate;
+        !lookAround;
+    }.
+
 
 +!check_front: true <-
     execs("tst.inspect()");

@@ -1,7 +1,7 @@
 // Turtle wood gathering plans and reasoning
 
 { include("movement.asl") }
-{ include("inventory.asl") }
+// { include("inventory.asl") }
 { include("locations2.asl") }
 
 
@@ -61,17 +61,6 @@ nothingInFront :- front_block(Block) & no_block(Block).
 
 +!keepChopping: true <- true.
 
-@tryAtomic[atomic]
-+!try(Fcn, Suc, Out, Err) : true <-
-    Fcn;
-    .wait(execs_out(Out));
-    Suc = true.
-    
--!try(Fcn, false, Out, Err) : true <-
-    ?execs_out(Out);
-    ?execs_err(Err).
-    
-
 +!storeWood : true <-
     inv("inv.checkSlots()");
     .findall(Slot, (slot(Slot, Item, Count) & wood(Item)), Slots);
@@ -88,24 +77,6 @@ nothingInFront :- front_block(Block) & no_block(Block).
         !storeWood([Slot | Slots]);
     } else {
         !storeWood(Slots);
-    }.
-
-    
-+!tryStore(Slot, Suc) : true <-
-    .concat("turtle.select(",Slot,")", SelectSlot);
-    execs(SelectSlot);
-    !try(execs("turtle.drop()"), ESuc, Out, Err);
-    .concat("inv.checkSlot(",Slot,")", CheckSlot);
-    inv(CheckSlot);
-    if (not ESuc & Err == "No space for items") {
-        Suc = false;
-    } elif (not ESuc) {
-        .print("Unable to store: ", Err);
-        .fail;
-    } elif (slot(Slot, _, 0)) {
-        Suc=true;
-    } else {
-        Suc = false;
     }.
 
 
@@ -154,39 +125,4 @@ saplingSearchPattern([t(0, 0), t(2, 1), t(3, -1), t(1, -2), t(0, 0)]).
         !moveTo(X+DX, Y, Z+DZ, Dir);
         !collectAround;
     }.
-
-    
-    
-    
-
-+!woodCutting: true <-
-    !moveTo(tree);
-    !chopTree;
-    .wait(3000);
-    !storeWood;
-    !woodCutting.
-    
-+!saplingSearch(X,Y,Z): true <-
-	//receive message that tree has been planted in (X, Y, Z)
-	!moveTo(X-1, Y, Z-1, east);
-	for( .range(I,1,3)){
-		!collectAround;
-		!moveForward;
-		!collectAround;
-		!moveForward;
-		execs("turtle.turnRight()");
-	}
-	!collectAround.
-	
-+!storeSticks: true <-
-	inv("inv.checkSlots()");
-	?slot(SlotNum, "minecraft:stick", Amount);
-	!moveTo(stick);
-	.concat("turtle.select(",SlotNum,")", SelectSlot);
-	execs(SelectSlot);
-	.concat("turtle.drop(",Amount,")", Store);
-    execs(Store).
-	
-	
-
 

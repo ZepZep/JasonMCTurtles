@@ -17,18 +17,37 @@ poi(turtle,         263, 75, -239, east).
 poi(computer,       263, 74, -239, east).
 
 
-// Crafting stations
-poi(craftingTable1, 257, 74, -245, south).
-poi(craftingTable2, 255, 74, -245, south).
-poi(craftingTable3, 253, 74, -245, south).
-poi(craftingTable4, 251, 74, -245, south).
-poi(craftingTable5, 249, 74, -245, south).
+// Name, minimum_count, craft_count 
+resource_setup(gold_ore,  128, 16).
+resource_setup(sand,      128, 16).
+resource_setup(redstone,  128, 16).
+// resource_setup(log,       128, 16).
 
-poi(furnace1, 257, 74, -247, north).
-poi(furnace2, 255, 74, -247, north).
-poi(furnace3, 253, 74, -247, north).
-poi(furnace4, 251, 74, -247, north).
-poi(furnace5, 249, 74, -247, north).
+resource_setup(gold,      128, 8).
+resource_setup(glass,     128, 8).
+resource_setup(fuel,      128, 8).
+
+resource_setup(wood,      128, 8).
+resource_setup(chest,     128, 4).
+resource_setup(glass_pane,128, 2).
+resource_setup(turtle,    128, 1).
+resource_setup(computer,  128, 1).
+
+
+// Crafting stations
+poi(crafter,  257, 74, -245, south).
+poi(crafter1, 257, 74, -245, south).
+poi(crafter2, 255, 74, -245, south).
+poi(crafter3, 253, 74, -245, south).
+poi(crafter4, 251, 74, -245, south).
+poi(crafter5, 249, 74, -245, south).
+
+poi(smelter,  257, 75, -247, north).
+poi(smelter1, 257, 75, -247, north).
+poi(smelter2, 255, 75, -247, north).
+poi(smelter3, 253, 75, -247, north).
+poi(smelter4, 251, 75, -247, north).
+poi(smelter5, 249, 75, -247, north).
 
 poi(idle,           256, 77, -238, east).
 

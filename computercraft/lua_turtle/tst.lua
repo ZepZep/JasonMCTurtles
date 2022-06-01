@@ -64,6 +64,9 @@ function fullLocate()
 end
 
 function turnLeft()
+  if face == nil then
+    return false, "Not calibrated"
+  end
   turtle.turnLeft()
   face = face - 1
   face = face % 4
@@ -71,6 +74,9 @@ function turnLeft()
 end
 
 function turnRight()
+  if face == nil then
+    return false, "Not calibrated"
+  end
   turtle.turnRight()
   face = face + 1
   face = face % 4

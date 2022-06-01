@@ -19,6 +19,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 
 public class MinecraftEnv extends Environment {
@@ -31,6 +33,8 @@ public class MinecraftEnv extends Environment {
 
     HashMap<String, BlockingQueue<JSONObject>> pcQueues;
     HashMap<String, ReentrantLock> pcLocks;
+    HashMap<String, Semaphore> agSemaphores;
+    
     
 
     interface ExecsAfterEffects {
@@ -123,6 +127,7 @@ public class MinecraftEnv extends Environment {
                     // System.out.println("Agent "+ag+" got inv "+key+" "+name+" "+count);
                     addPercept(ag, Literal.parseLiteral("slot(" +key+", \""+name+"\", "+count+")"));
                 }
+                addPercept(ag, Literal.parseLiteral("execs_out(\"slots\")"));
             }
             if (obj.has("err")) {
                 addPercept(ag, Literal.parseLiteral("execs_err(\"" + obj.get("err") + "\")"));
@@ -149,6 +154,7 @@ public class MinecraftEnv extends Environment {
         pc2ag = new HashMap<String, String>();
         pcQueues = new HashMap<String, BlockingQueue<JSONObject>>();
         pcLocks = new HashMap<String, ReentrantLock>();
+        agSemaphores = new HashMap<String, Semaphore>();
 
         server = new SimpleServer(new InetSocketAddress(host, port), newPcQueues);
         server.setReuseAddr(true);
@@ -175,6 +181,7 @@ public class MinecraftEnv extends Environment {
         pc2ag.put(pc, ag);
         pcQueues.put(pc, new LinkedBlockingQueue<JSONObject>());
         pcLocks.put(pc, new ReentrantLock());
+        agSemaphores.put(ag, new Semaphore(1, true));
 
         boolean retval = server.acceptConnection(ag, pc, pcQueues.get(pc));
         if (!retval) { return false; }
@@ -198,6 +205,9 @@ public class MinecraftEnv extends Environment {
         json.put("sync", "true");
 
         String pc = ag2pc.get(ag);
+        if (pcLocks.get(pc).isLocked()) {
+            System.out.println("LLL "+ag+" encountered lock.");
+        }
         pcLocks.get(pc).lock();
         boolean retval = server.exec(pc, json);
         if (!retval) { 
@@ -258,12 +268,30 @@ public class MinecraftEnv extends Environment {
             } catch (InterruptedException e) {}
             retval = true;
         }
-        // unlock
+        // lock
+        else if (functor.equals("lock")) {
+            // String pc = ag2pc.get(ag);
+            // try {
+                // retval = agSemaphores.get(ag).tryAcquire(1, 5, TimeUnit.SECONDS);
+            // } catch (InterruptedException e) {
+                // System.out.println("LLLag " + ag + " lock action interupted");
+                // retval = false;
+            // }
+            retval=true;
+            // removePerceptsByUnif(ag, Literal.parseLiteral("locked(X)"));
+            // addPercept(ag, Literal.parseLiteral("locked(true)"));
+            // System.out.println("LLLag " + ag + " locked");
+            
+        }
         else if (functor.equals("unlock")) {
-            String pc = ag2pc.get(ag);
-            if (pcLocks.get(pc).isLocked()) {
-                pcLocks.get(pc).unlock();
-            }
+            // System.out.println("LLLag " + ag + " unlocking");
+            // if (agSemaphores.get(ag).availablePermits() == 0) {
+                // agSemaphores.get(ag).release();
+            // } else {
+                // System.out.println("LLLag [" + ag + "] unlocking unlocked lock");
+            // }
+            // removePerceptsByUnif(ag, Literal.parseLiteral("locked(X)"));
+            // addPercept(ag, Literal.parseLiteral("locked(false)"));
             retval = true;
         }
         // connect
@@ -276,8 +304,6 @@ public class MinecraftEnv extends Environment {
                 channel = channel.substring(1, channel.length()-1);
                 retval = a_connect(ag, channel);
             }
-
-            
         }
         if(!retval) {
             // System.out.println("XXX [" + ag + "] action " + act + " FAILED.");

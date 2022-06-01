@@ -3,54 +3,88 @@
 { include("movement.asl") }
 { include("inventory.asl") }
 
-+!getItem(Amount, Pos): true <-
-    !moveTo(Pos);
-    .concat("turtle.suck(",Amount,")", SuckAmount);
-    execs(SuckAmount).
+craftingSlots([1,2,3,5,6,7,9,10,11]).
+queueRecipe([], [], Q) :- true.
+queueRecipe([Item | Items], [Slot|Slots], Q) :- Item == 0 & queueRecipe(Items, Slots, Q).
+queueRecipe([Item | Items], [Slot|Slots], Q) :- .queue.add(Q, t(Item, Slot)) & queueRecipe(Items, Slots, Q).
 
-+!craft(Item, Amount): recipe(Item, Recipe) <-
-    .map.create(R);
-    .map.put(R, slot, 0);
-    for( .member(I,Recipe) ){
-        .map.get(R, slot, N);
-        .map.put(R, slot, N+1);
-        if( N == 3 | N == 7 ){ .map.put(R, slot, N+2); }
-        if( not I == 0 ){
-            .map.get(R, slot, M);
-            .concat("turtle.select(",M,")", SelectSlot);
-            execs(SelectSlot);
-            !getItem(Amount, I);
-    }}
-    !moveTo(craftingTable);
-    execs("turtle.select(1)");
-    .concat("turtle.craft(",Amount,")", Craft);
-    execs(Craft);
+prepareRecipe(Result, Q) :- recipe(Result, Items) & craftingSlots(Slots) &
+    .queue.create(Q,priority) & queueRecipe(Items, Slots, Q).
+
++!getItem(Item, Slot, Amount): true <-
     !moveTo(Item);
-    .concat("turtle.drop(",Amount,")", Store);
-    execs(Store).
+    !selectSlot(Slot);
+    .concat("turtle.suck(",Amount,")", SuckAmount);
+    !execs(execs(SuckAmount), Suc, Out, Err);
+    if (not Suc) {
+        .print("Unable to get item ", Item, " error: ", Err);
+        !goIdle;
+        .wait(3000);
+        !getItem(Item, Slot, Amount);
+    }.
 
-// OLD PLAN
-// we start the plan if we have the recipe for Item
-+!craft(Item, Amount): recipe(Item, Recipe) <-
-    //create a java map (~dictionary)
-    .map.create(R);
-    // we now count the amount we need of each ingredient
-    // initialise all ingredients to 0
-    for( .member(I,Recipe) ){
-        if( not I == 0 ){
-            .map.put(R, I, 0);
-    }}
-    // count them
-    for( .member(I,Recipe) ){
-        if( not I == 0 ){
-            .map.get(R, I, N);
-            .map.put(R, I, N+1);
-            .print(I);
-    }}
-    // get desired amount of each ingredient
-    for( .map.key(R,K) & .map.get(R,K,V) ){
-        for( .range(I,1,K) ){
-            !getItem(1, V);
-    }}.
++!craft(Result, Amount): my_station(Station) & prepareRecipe(Result, Q) <-
+    !emptyOutInventory;
+    for ( .member(t(Item, Slot),Q) ) {
+        .print("Getting ", Item, " x ", Amount);
+        !getItem(Item, Slot, Amount);
+    };
+    !selectSlot(1);
+    !moveTo(Station);
+    .concat("turtle.craft(",Amount,")", Craft);
+    .wait(1000);
+    !execs(execs(Craft), Suc, Out, Err);
+    if (not Suc) {
+        .print("Failed to craft with: ", Err);
+        .fail;
+    };
+    !moveTo(Result);
+    !tryStore(1, Suc);
+    if (not Suc) {
+        .print("Storage full.");
+    };
+    !goIdle.
+    
++!smelt(Result, Amount) : my_station(Station) & smelt_recipe(Result, Ingredient) <-
+    !emptyOutInventory;
+    !getItem(Ingredient, 1, Amount);
+    !getItem(fuel, 2, Amount/8);
+    !attendFurnace(Station, Amount);
+    !moveTo(Result);
+    !tryStore(1, Suc);
+    if (not Suc) {
+        .print("Storage full.");
+    };
+    !goIdle.  
+
++!attendFurnace(Station, Amount) : poi(Station, X, Y, Z, Dir) <-
+    !moveTo(X, Y, Z, Dir);
+    !selectSlot(2);
+    !execs(execs("turtle.drop()"));
+    
+    ?faceDelta(Dir,  delta(DX, DZ));
+    !moveCheck("tst.up()", _, _, _);
+    !moveCheck("tst.forward()", _, _, _);
+    !moveTo(X+DX,Y+1,Z+DZ, Dir);
+    !selectSlot(1);
+    !execs(execs("turtle.dropDown()"));
+    
+    !moveCheck("tst.back()", _, _, _);
+    !moveCheck("tst.down()", _, _, _);
+    !moveCheck("tst.down()", _, _, _);
+    !moveCheck("tst.forward()", _, _, _);
+    !moveTo(X+DX,Y-1,Z+DZ, Dir);
+    !suckWaitForAmount(1, Amount).
+
++!suckWaitForAmount(Slot, Amount) : true <-
+     !execs(execs("turtle.suckUp()"), _, _, _);
+     !updateSlot(Slot);
+     ?slot(Slot, _, SAmount);
+     if (SAmount < Amount) {
+        .print("Got only ", SAmount, " from ", Amount, ". Waiting");
+        .wait(5000);
+        !suckWaitForAmount(Slot, Amount);
+     }.
+    
 
 

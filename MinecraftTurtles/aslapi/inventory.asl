@@ -8,6 +8,8 @@
 //      inv.checkSlot(i) - checks slot `i`
 //      inv.checkSlots_(i, j) - checks slots from `i` to `j` (`j` included)
 
+{ include("execution.asl") }
+
 // check the inventory and get the percepts
 // print info about all non-empty slots
 +!invDebug : true <-
@@ -18,8 +20,7 @@
 
 // check fuel level and talk about it
 +!fuelDebug : true <-
-    execs_literal("turtle.getFuelLevel()");
-    ?execs_out(FuelLevel);
+    !execs(execs_literal("turtle.getFuelLevel()"), true, FuelLevel, _);
     .print("My fuel level is ", FuelLevel, ".");
     if (FuelLevel < 100) {
         .print(FuelLevel, " fuel is not enough, I should get a refuel.");
@@ -27,18 +28,59 @@
         .print(FuelLevel, " fuel is plenty, I don't have to worry.");
     }.
 
-@getFuelLevel[atomic]
++!selectSlot(Slot) : true <-
+    .concat("turtle.select(",Slot,")", SelectSlot);
+    !execs(execs(SelectSlot), true, _, _).
+    
++!currentSlot(Slot) : true <-
+    !execs(execs_literal("turtle.getSelectedSlot()"), true, Slot, _).
+    
++!updateSlot(Slot) : true <-
+    .concat("inv.checkSlot(",Slot,")", CheckSlot);
+    !execs(inv(CheckSlot), true, _, _).
+     
+    
++!emptyOutInventory: true <-
+    inv("inv.checkSlots()");
+     for ( slot(Slot, Item, Count) & Count > 0 ) {
+        !selectSlot(Slot);
+        !execs(execs("turtle.dropUp()"), true, _, _);
+    };
+    inv("inv.checkSlots()").
+    
+    
+// -----------------------------------
+// ----------  STORE things  ---------
++!tryStore(Slot, Suc) : true <-
+    !selectSlot(Slot);
+    !execs(execs("turtle.drop()"), ESuc, Out, Err);
+    .concat("inv.checkSlot(",Slot,")", CheckSlot);
+    inv(CheckSlot);
+    if (not ESuc & Err == "No space for items") {
+        Suc = false;
+    } elif (not ESuc) {
+        .print("Unable to store: ", Err);
+        .fail;
+    } elif (slot(Slot, _, 0)) {
+        Suc=true;
+    } else {
+        Suc = false;
+    }.
+    
+// -----------------------------------
+// ----------  FUEL handling  ---------
+
+// @getFuelLevelAtom[atomic]
 +!observe_fuel_level : true <-
-    execs_literal("turtle.getFuelLevel()");
-    ?execs_out(FuelLevel);
-    -fuel_amount(X);
-    +fuel_amount(FuelLevel).
+    !execs(execs_literal("turtle.getFuelLevel()"), true, FuelLevel, _);
+    -+fuel_amount(FuelLevel).
 
 +!keep_fueled : not connected <-
     .wait(5000);
     !keep_fueled.
     
 +!keep_fueled :  true <-
+    .wait(1000);
     !check_fuel_level;
     .wait(30000);
     !keep_fueled.
@@ -64,8 +106,12 @@
         .intention(ICur,_,_,current);
         if (.intend(start, IStart) & ICur \== IStart) {
             // .print("Suspending start");
-            unlock;
+            .wait(not locked);
+            // lock;
+            +locked;
             .suspend(start);
+            // unlock;
+            -locked;
         }
         !refuel;
         -refueling;
@@ -78,14 +124,16 @@
     }.
 
 @refuelAtom[priority(90)]
-+!refuel : fuel_amount(Fuel) & Fuel > 0 <-
++!refuel : fuel_amount(Fuel) & Fuel > 0 & at(X, Y, Z, Dir) <-
     .print("Moving to refuel.");
     !observe_fuel_level;
+    !currentSlot(Slot);
     !moveTo(fuel);
-    execs("turtle.select(16)");
-    execs("turtle.suck(4)");
-    execs("turtle.refuel()");
-    !goIdle;
+    !selectSlot(16);
+    !execs(execs("turtle.suck(4)"));
+    !execs(execs("turtle.refuel()"));
+    !selectSlot(Slot);
+    !moveTo(X, Y, Z, Dir);
     .resume(start).
     
 +!refuel : fuel_amount(Fuel) & Fuel == 0 <-

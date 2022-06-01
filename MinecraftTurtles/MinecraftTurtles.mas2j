@@ -9,6 +9,7 @@ Authors:
 */
 
 MAS minecraft_turtles {
+    // infrastructure: Local(pool, 50)
     environment: env.MinecraftEnv
 
     // agents:
@@ -21,5 +22,8 @@ MAS minecraft_turtles {
         rescuer #3;
         lumberjack;
         forester;
+        crafter #2;
+        smelter #2;
+        // dummy #30;
         // damsel;
 }
