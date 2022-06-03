@@ -5,7 +5,7 @@
 { include("aslapi/locations2.asl") }
 { include("aslapi/crafting.asl") }
 
-minimum_fuel_level(100).
+minimum_fuel_level(0).
 role(smelter).
 
 get_my_station(Station) :- .my_name(Station).
@@ -17,8 +17,22 @@ get_my_station(Station) :- .my_name(Station).
 +!getStation : get_my_station(Station) <- +my_station(Station).
 
 +!start : true <-
-    !getStation;
     !connect("5");
+    !getStation;
     .print("connected");
-    !smelt(glass, 8).
+    !keep_smelting.
 
+smelt_items([glass, gold, fuel]).
++!keep_smelting: smelt_items(Items) <-
+    .random(Items, Item);
+    .print("Smelting ", Item);
+    !smelt(Item, 8);
+    !goIdle;
+    !keep_smelting.
+    
+-!keep_smelting : true <-
+    .print("Something went wrong.");
+    !keep_smelting.
+    
+    
+    

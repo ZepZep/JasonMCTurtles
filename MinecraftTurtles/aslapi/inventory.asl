@@ -80,7 +80,7 @@
     !keep_fueled.
     
 +!keep_fueled :  true <-
-    .wait(1000);
+    .wait(2000);
     !check_fuel_level;
     .wait(30000);
     !keep_fueled.

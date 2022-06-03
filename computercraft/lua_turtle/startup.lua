@@ -106,6 +106,7 @@ end
 
 hello()
 checkFuel()
+sleep(1 + math.random())
 calibrate()
 
 while true do

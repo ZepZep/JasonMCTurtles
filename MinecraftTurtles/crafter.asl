@@ -5,7 +5,7 @@
 { include("aslapi/locations2.asl") }
 { include("aslapi/crafting.asl") }
 
-minimum_fuel_level(100).
+minimum_fuel_level(0).
 role(crafter).
 
 get_my_station(Station) :- .my_name(Station).
@@ -17,8 +17,19 @@ get_my_station(Station) :- .my_name(Station).
 +!getStation : get_my_station(Station) <- +my_station(Station).
 
 +!start : true <-
-    !getStation;
     !connect("4");
+    !getStation;
     .print("connected");
-    !craft(wood, 4).
+    !keep_crafting.
 
+craft_items([wood, glass_pane, chest]).
++!keep_crafting: craft_items(Items) <-
+    .random(Items, Item);
+    .print("Crafting ", Item);
+    !craft(Item, 1);
+    !goIdle;
+    !keep_crafting.
+    
+-!keep_crafting : true <-
+    .print("Something went wrong.");
+    !keep_crafting.

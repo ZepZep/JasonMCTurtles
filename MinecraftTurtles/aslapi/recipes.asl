@@ -2,7 +2,7 @@ recipe(nothing,[0,    0,    0,
                 0,    0,    0,
                 0,    0,    0]).
 
-recipe(glassPane,[glass,  glass,  glass,
+recipe(glass_pane,[glass,  glass,  glass,
                   glass,  glass,  glass,
                   0,      0,      0    ]).
 

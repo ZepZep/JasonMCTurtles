@@ -128,8 +128,10 @@ can_pickup_more_fuel("empty").
     .wait(1000);
     !go_rescue(Name, X,Y,Z).
 
-+!go_rescue(Name, X,Y,Z) : true <-
++!go_rescue(Name, X,Y,Z) : .my_name(MyName) <-
     .print("Rescuing ", Name);
+    .concat("tst.speak(\"",MyName,"\", \"Rescuing ", Name, "\")",RescueMsg);
+    !execs(execs(RescueMsg));
     !moveToFace(X,Y,Z);
     execs("turtle.select(1)");
     execs("turtle.drop()");

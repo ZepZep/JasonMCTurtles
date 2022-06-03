@@ -16,12 +16,13 @@
     
 +!execs(What) : true <- !execs(What, true, _, _).
 
--!execs(What, false, Out, Err) : true <-
+-!execs(What, Suc, Out, Err) : true <-
     .wait(execs_out(Out)[source(percept)]);
     -execs_out(Out)[source(percept)];
     .wait(execs_err(Err));
     -execs_err(Err)[source(percept)];
     // .print("unlocking");
     // unlock;
-    -locked.
+    -locked;
+    Suc=false.
     // .print("unlocked").

@@ -24,11 +24,27 @@ function getFacing(x0, z0, x1, z1)
   elseif z1 == z0 - 1 then
     return 3
   end
+  print("   Bad calibration x0="..tostring(x0).." x1="..tostring(x1).." z0="..tostring(z0).." z1="..tostring(z1))
+end
+
+function gpslocate()
+  local tries=0
+  local xl, yl, zl
+  while tries < 10 do
+    xl, yl, zl = gps.locate()
+    if xl == xl then
+--       print("   gpslocate: "..tostring(xl).." "..tostring(yl).." "..tostring(zl).." ")
+      return xl, yl, zl
+    end
+--     print("   Failed to gps.locate")
+    sleep(math.random()/2)
+    tries = tries+1
+  end
 end
 
 -- get gps using other computers
 function calibrate()
-  local x0, y0, z0 = gps.locate()
+  local x0, y0, z0 = gpslocate()
   x = x0
   y = y0
   z = z0
@@ -36,7 +52,7 @@ function calibrate()
   calibrated = false
   while not calibrated and i < 4 do
     if turtle.forward() then
-      x, y, z = gps.locate()
+      x, y, z = gpslocate()
       calibrated = true
       face = getFacing(x0, z0, x, z)
       return true
@@ -280,3 +296,18 @@ function inspectDown()
 
     return output.name
 end
+
+function try_speak(who, what)
+
+end
+
+function speak(who, what)
+  p = peripheral.find("chatBox")
+  if p == nil then
+    return false
+  end
+  p.sendMessage(what, who)
+  return true
+end
+
+
