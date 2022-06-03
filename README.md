@@ -32,6 +32,19 @@ By default computercraft blocks localhost websockets, it needs to be enabled in 
 
 Code in `computercraft/lua_turtle` should be present in each turtle you want to connect to Jason.
 
+
+## Code structure
+The `computercraft/lua_turtle` folder contains all the scripts that the turtles use to connect the WebSocket server and interpret the Jason actions.
+
+The `MinecraftTurtles` directory contains the Jason project.
+
+* `MinecraftTurtles/MinecraftTurtles.mas2j`: main project file
+* `MinecraftTurtles/*.asl`: agent definitions
+* `MinecraftTurtles/aslapi/*.asl`: common capabilities definitions
+* `MinecraftTurtles/env/*.java`: Environment definitions
+* `MinecraftTurtles/agent/PriorityAgent.java`: Intention selection function which can use plan priorities. (not used in the end)
+
+
 ## TODO
 - [x] send commands to specific turtle
 - [x] synchronous external actions (`execs`)
@@ -39,13 +52,10 @@ Code in `computercraft/lua_turtle` should be present in each turtle you want to 
 - [x] turtle moveTowards function
 - [x] return values to Jason
 - [x] Jason `moveTo` goal
-- [ ] inventory management
-- [ ] block perception
-- [ ] chatting
-- [ ] turtle filesystem scripts
+- [x] inventory management
+- [x] block perception
+- [x] chatting
+- [x] turtle filesystem scripts
 
-## Bugs
-- [x] investigate empty HashMap
-- [x] server port sometimes full after restart
 
 
