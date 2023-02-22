@@ -8,6 +8,9 @@ Authors: Petr Zelina, Jordan Ortiz Thorogood, Haroun Ben Ameur
 Computercraft wiki: https://tweaked.cc/<br>
 Inspired by https://github.com/LarsChristianK/WebsocketsTurtleMoveTutorial
 
+[![Video of JasonMCTurtles](https://img.youtube.com/vi/2Nv5HgBjiYg/0.jpg)](https://www.youtube.com/watch?v=2Nv5HgBjiYg)
+
+
 ## Installation
 I dont know how propper java dependences should be handled, especcialy for them to work with Jason.
 
